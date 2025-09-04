@@ -29,7 +29,7 @@ mvn clean package
 
 # 3️⃣ Copy the WAR file into WildFly deployments folder
 # 👉 Replace $WILDFLY_HOME with your WildFly installation path
-cp target/*.war $WILDFLY_HOME/standalone/deployments/
+cp target/<war_name> $WILDFLY_HOME/standalone/deployments/
 
 # ✅ Example (if WildFly is installed in /opt/wildfly):
 cp target/Java-Web-Apps.war /opt/wildfly/standalone/deployments/
@@ -40,8 +40,8 @@ cp target/Java-Web-Apps.war ~/wildfly/standalone/deployments/
 # 4️⃣ Start WildFly server
 
 # 👉 If installed as a service (systemd)
-sudo systemctl start wildfly
-sudo systemctl status wildfly   # (optional: check if running)
+sudo systemctl restart wildfly
+sudo systemctl status wildfly     # (optional: check if running)
 
 # 5️⃣ Open the application in your browser 🎉
 # 👉 Replace <server-ip> with your machine IP (or use localhost if local)
@@ -49,7 +49,8 @@ sudo systemctl status wildfly   # (optional: check if running)
 http://<server-ip>:8080/<app-name>/
 
 # ✅ Example
-http://10.53.85.217:8080/Java-Web-Apps/
+http://10.53.85.217:8080/webapp/
+
 
 
 
