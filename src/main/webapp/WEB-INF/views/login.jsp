@@ -10,29 +10,28 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
 
     <title>LOGIN</title>
 
-    <link href="${contextPath}/resources/css/bootstrap.min.css" rel="stylesheet">
-    <link href="${contextPath}/resources/css/common.css" rel="stylesheet">
+    <!-- CSS from CloudFront -->
+    <link href="${cdnHelper.getCSSUrl('bootstrap.min.css')}" rel="stylesheet">
+    <link href="${cdnHelper.getCSSUrl('common.css')}" rel="stylesheet">
+    <link href="${cdnHelper.getCSSUrl('profile.css')}" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
     <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-    <head>
-    <title>Welcome</title>
-    <link href="${contextPath}/resources/css/profile.css" rel="stylesheet">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel="stylesheet" href="https://bootswatch.com/cosmo/bootstrap.min.css">
-</head>
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://bootswatch.com/cosmo/bootstrap.min.css">
 </head>
 
-<body background = "${contextPath}/resources/Images/login-background.png">
+<!-- BACKGROUND IMAGE FROM CLOUDFRONT -->
+<body background="${cdnHelper.getImageUrl('login-background.png')}">
 
 <div class="mainbody container-fluid">
     <div class="row">
@@ -55,25 +54,26 @@
                                 <li><a href="#">BLOG</a></li>
                             </ul>
                             <div class="navbar-collapse navbar-right collapse">
-	                            <ul class="nav navbar-nav">
-	                        	 <li><a href="${contextPath}/login">LOGIN</a></li>
-	                        	 <li><a href="${contextPath}/registration">SIGN UP</a></li>
-	                       	 	</ul>
+                                <ul class="nav navbar-nav">
+                                 <li><a href="${contextPath}/login">LOGIN</a></li>
+                                 <li><a href="${contextPath}/registration">SIGN UP</a></li>
+                                </ul>
                             </div>
-                            
                          </div>
-                         
                     </div>
                 </div>
             </div>
- 		</div>
-	</div>
+        </div>
+    </div>
 </div>
+
 <div class="container">
-	
     <form method="POST" action="${contextPath}/login" class="form-signin">
         <h2 class="form-heading" align="center"> WELCOME! </h2>
-		<img  class="logo" src="${contextPath}/resources/Images/hkh-infotech-logo.png" />
+        
+        <!-- LOGO IMAGE FROM CLOUDFRONT -->
+        <img class="logo" src="${cdnHelper.getImageUrl('hkh-infotech-logo.png')}" />
+        
         <div class="form-group ${error != null ? 'has-error' : ''}">
             <span>${message}</span>
             <input name="username" type="text" class="form-control" placeholder="Username"/>
@@ -81,15 +81,15 @@
             <span>${error}</span>
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
-            <button class="btn btn-custom-LOGIN btn-lg  btn-block" type="submit">LOGIN</button>
+            <button class="btn btn-custom-LOGIN btn-lg btn-block" type="submit">LOGIN</button>
             <h4 class="text-center"><a href="${contextPath}/registration">SIGN UP</a></h4>
         </div>
-
     </form>
-
 </div>
-<!-- /container -->
+
+<!-- JS from CloudFront -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-<script src="${contextPath}/resources/js/bootstrap.min.js"></script>
+<script src="${cdnHelper.getJSUrl('bootstrap.min.js')}"></script>
+
 </body>
 </html>

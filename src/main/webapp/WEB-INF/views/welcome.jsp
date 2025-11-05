@@ -7,8 +7,8 @@
 <html lang="en">
 <head>
     <title>Welcome</title>
-    <link rel="stylesheet" href="${contextPath}/resources/css/bootstrap.min.css">
-    <link href="${contextPath}/resources/css/profile.css" rel="stylesheet">
+    <link rel="stylesheet" href="${cdnHelper.getCSSUrl('bootstrap.min.css')}">
+    <link href="${cdnHelper.getCSSUrl('profile.css')}" rel="stylesheet">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 
 </head>
@@ -26,7 +26,7 @@
                                     class="icon-bar"></span><span class="icon-bar"></span>
                             </button>
                             <a class="navbar-brand" href="#" style="margin-right:-8px; margin-top:-5px;">
-                                <img alt="Brand" src="${contextPath}/resources/Images/user/logo.png" width="30px" height="30px">
+                                <img alt="Brand" src="${cdnHelper.getImageUrl('user/logo.png')}" width="30px" height="30px">
                             </a>
                             <a class="navbar-brand" href="#">HKH Infotech</a>
                             <i class="brand_network"><small><small>hkh* Network</small></small></i>
@@ -41,7 +41,7 @@
                             <ul class="nav navbar-nav navbar-right">
                                 <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     <span class="user-avatar pull-left" style="margin-right:8px; margin-top:-5px;">
-                                    <img src="${contextPath}/resources/Images/user/user.png" class="img-responsive img-circle" title="John Doe" alt="John Doe" width="30px" height="30px">
+                                    <img src="${cdnHelper.getImageUrl('user/user.png')}" class="img-responsive img-circle" title="John Doe" alt="John Doe" width="30px" height="30px">
                                     </span>
                                     <span class="user-name">
                                         ${pageContext.request.userPrincipal.name}
@@ -52,7 +52,7 @@
                                             <div class="navbar-content">
                                                 <div class="row">
                                                     <div class="col-md-5">
-                                                        <img src="${contextPath}/resources/Images/user/user.png" alt="Alternate Text" class="img-responsive" width="120px" height="120px" />
+                                                        <img src="${cdnHelper.getImageUrl('user/user.png')}" alt="Alternate Text" class="img-responsive" width="120px" height="120px" />
                                                         <p class="text-center small">
                                                             <a href="${contextPath}/upload">Change Photo</a></p>
                                                     </div>
@@ -96,7 +96,7 @@
                 <div class="panel-body">
                     <div class="media">
                         <div align="center">
-                            <img class="thumbnail img-responsive" src="${contextPath}/resources/Images/user/user.png" width="300px" height="300px">
+                            <img class="thumbnail img-responsive" src="${cdnHelper.getImageUrl('user/user.png')}" width="300px" height="300px">
                         </div>
                         <div class="media-body">
                             <hr>
@@ -166,7 +166,7 @@
                 <div class="panel-body">
                     <div class="pull-left">
                         <a href="#">
-                            <img class="media-object img-circle" src="${contextPath}/resources/Images/user/user.png" width="50px" height="50px" style="margin-right:8px; margin-top:-5px;">
+                            <img class="media-object img-circle" src="${cdnHelper.getImageUrl('user/user.png')}" width="50px" height="50px" style="margin-right:8px; margin-top:-5px;">
                         </a>
                     </div>
                     <h4><a href="#" style="text-decoration:none;"><strong>${pageContext.request.userPrincipal.name}</strong></a><small><small><a href="#" style="text-decoration:none; color:grey;"><i><i class="fa fa-clock-o" aria-hidden="true"></i> 42 minutes ago</i></a></small></small></h4>
@@ -209,7 +209,7 @@
                     <div class="media">
                         <div class="pull-left">
                             <a href="#">
-                                <img class="media-object img-circle" src="${contextPath}/resources/Images/user/user.png" width="35px" height="35px" style="margin-left:3px; margin-right:-5px;">
+                                <img class="media-object img-circle" src="${cdnHelper.getImageUrl('user/user.png')}" width="35px" height="35px" style="margin-left:3px; margin-right:-5px;">
                             </a>
                         </div>
                         <div class="media-body">
@@ -223,7 +223,7 @@
                 <div class="panel-body">
                     <div class="pull-left">
                         <a href="#">
-                            <img class="media-object img-circle" src="${contextPath}/resources/Images/user/user.png" width="50px" height="50px" style="margin-right:8px; margin-top:-5px;">
+                            <img class="media-object img-circle" src="${cdnHelper.getImageUrl('user/user.png')}" width="50px" height="50px" style="margin-right:8px; margin-top:-5px;">
                         </a>
                     </div>
                     <h4><a href="#" style="text-decoration:none;"><strong>${pageContext.request.userPrincipal.name}</strong></a><small><small><a href="#" style="text-decoration:none; color:grey;"><i><i class="fa fa-clock-o" aria-hidden="true"></i> 42 minutes ago</i></a></small></small></h4>
@@ -251,7 +251,7 @@
                             <div class="panel-body">
                                 <div class="pull-left">
                                     <a href="#">
-                                        <img class="media-object img-circle" src="${contextPath}/resources/Images/user/user2.png" width="50px" height="50px" style="margin-right:8px; margin-top:-5px;">
+                                        <img class="media-object img-circle" src="${cdnHelper.getImageUrl('user/user2.png')}" width="50px" height="50px" style="margin-right:8px; margin-top:-5px;">
                                     </a>
                                 </div>
                                 <h4><a href="#" style="text-decoration:none;"><strong>Abrar nirban</strong></a> <small><small><a href="#" style="text-decoration:none; color:grey;"><i><i class="fa fa-clock-o" aria-hidden="true"></i> about 10 hours ago</i></a></small></small></h4>
@@ -282,7 +282,7 @@
                     <div class="media">
                         <div class="pull-left">
                             <a href="#">
-                                <img class="media-object img-circle" src="${contextPath}/resources/Images/user/user.png" width="35px" height="35px" style="margin-left:3px; margin-right:-5px;">
+                                <img class="media-object img-circle" src="${cdnHelper.getImageUrl('user/user.png')}" width="35px" height="35px" style="margin-left:3px; margin-right:-5px;">
                             </a>
                         </div>
                         <div class="media-body">
@@ -296,7 +296,7 @@
                 <div class="panel-body">
                     <div class="pull-left">
                         <a href="#">
-                            <img class="media-object img-circle" src="${contextPath}/resources/Images/user/user.png" width="50px" height="50px" style="margin-right:8px; margin-top:-5px;">
+                            <img class="media-object img-circle" src="${cdnHelper.getImageUrl('user/user.png')}" width="50px" height="50px" style="margin-right:8px; margin-top:-5px;">
                         </a>
                     </div>
                     <h4><a href="#" style="text-decoration:none;"><strong>${pageContext.request.userPrincipal.name}</strong></a><small><small><a href="#" style="text-decoration:none; color:grey;"><i><i class="fa fa-clock-o" aria-hidden="true"></i> 42 minutes ago</i></a></small></small></h4>
@@ -321,7 +321,7 @@
                     <hr>
                     <div class="post-content">
                         <p>" Manager Reaction On Your Work without DevOps "</p>
-                        <img class="img-responsive" src="${contextPath}/resources/Images/user/giphy.gif">
+                        <img class="img-responsive" src="${cdnHelper.getImageUrl('user/giphy.gif')}">
                         <p><br><a href="#" class="tag">#  I want DevOps </a> <a href="#" class="tag">#  DevOps..</a></p>
                     </div>
                     <hr>
@@ -340,7 +340,7 @@
                     <div class="media">
                         <div class="pull-left">
                             <a href="#">
-                                <img class="media-object img-circle" src="${contextPath}/resources/Images/user/user.png" width="35px" height="35px" style="margin-left:3px; margin-right:-5px;">
+                                <img class="media-object img-circle" src="${cdnHelper.getImageUrl('user/user.png')}" width="35px" height="35px" style="margin-left:3px; margin-right:-5px;">
                             </a>
                         </div>
                         <div class="media-body">
@@ -354,7 +354,7 @@
                 <div class="panel-body">
                     <div class="pull-left">
                         <a href="#">
-                            <img class="media-object img-circle" src="${contextPath}/resources/Images/user/user.png" width="50px" height="50px" style="margin-right:8px; margin-top:-5px;">
+                            <img class="media-object img-circle" src="${cdnHelper.getImageUrl('user/user.png')}" width="50px" height="50px" style="margin-right:8px; margin-top:-5px;">
                         </a>
                     </div>
                     <h4><a href="#" style="text-decoration:none;"><strong>${pageContext.request.userPrincipal.name}</strong></a> <small><small><a href="#" style="text-decoration:none; color:grey;"><i><i class="fa fa-clock-o" aria-hidden="true"></i> 42 minutes ago</i></a></small></small></h4>
@@ -400,7 +400,7 @@
                                 <div class="panel-body">
                                     <div class="pull-left">
                                         <a href="#">
-                                            <img class="media-object img-circle" src="${contextPath}/resources/Images/user/user2.png" width="35px" height="35px" style="margin-right:8px; margin-top:-5px;">
+                                            <img class="media-object img-circle" src="${cdnHelper.getImageUrl('user/user2.png')}" width="35px" height="35px" style="margin-right:8px; margin-top:-5px;">
                                         </a>
                                     </div>
                                     <h4><a href="#" style="text-decoration:none;"><strong>Kiran Kumar</strong></a></h4>
@@ -418,7 +418,7 @@
                                 <div class="panel-body">
                                     <div class="pull-left">
                                         <a href="#">
-                                            <img class="media-object img-circle" src="${contextPath}/resources/Images/user/user3.png" width="35px" height="35px" style="margin-right:8px; margin-top:-5px;">
+                                            <img class="media-object img-circle" src="${cdnHelper.getImageUrl('user/user3.png')}" width="35px" height="35px" style="margin-right:8px; margin-top:-5px;">
                                         </a>
                                     </div>
                                     <h4><a href="#" style="text-decoration:none;"><strong>Mi Chleen</strong></a></h4>
@@ -436,7 +436,7 @@
                                 <div class="panel-body">
                                     <div class="pull-left">
                                         <a href="#">
-                                            <img class="media-object img-circle" src="${contextPath}/resources/Images/user/user.png" width="35px" height="35px" style="margin-right:8px; margin-top:-5px;">
+                                            <img class="media-object img-circle" src="${cdnHelper.getImageUrl('user/user.png')}" width="35px" height="35px" style="margin-right:8px; margin-top:-5px;">
                                         </a>
                                     </div>
                                     <h4><a href="#" style="text-decoration:none;"><strong>${pageContext.request.userPrincipal.name}</strong></a></h4>
@@ -452,7 +452,7 @@
                     <div class="media">
                         <div class="pull-left">
                             <a href="#">
-                                <img class="media-object img-circle" src="${contextPath}/resources/Images/user/user.png" width="35px" height="35px" style="margin-left:3px; margin-right:-5px;">
+                                <img class="media-object img-circle" src="${cdnHelper.getImageUrl('user/user.png')}" width="35px" height="35px" style="margin-left:3px; margin-right:-5px;">
                             </a>
                         </div>
                         <div class="media-body">
@@ -480,7 +480,7 @@ $(function () {
 	})
 </script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-<script src="${contextPath}/resources/js/bootstrap.min.js"></script>
+<script src="${cdnHelper.getJSUrl('bootstrap.min.js')}"></script>
 
 </body>
 </html>

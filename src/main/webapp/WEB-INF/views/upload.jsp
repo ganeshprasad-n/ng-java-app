@@ -31,26 +31,27 @@
   <div class="panel panel-default">
   <h2 align="center">Upload Image </h2>
     <form action="./uploadFile?${_csrf.parameterName}=${_csrf.token}" method="post" enctype="multipart/form-data">
-		<span>${pageContext.request.userPrincipal.name}</span> <br/>
-		<div class="form-group">
-	      <label for="file">Image Upload</label>
-	      <input type="file" name="file" class="form-control" id="file">
-    	</div>
- 		<div class="form-group">
-	      <label for="name">Image Name:</label>
-	      <input type="text"  name="name" class="form-control" id="name">
-    	</div>
-		<div class="align-center">
- 			<input type="hidden"  name="${_csrf.parameterName}"   value="${_csrf.token}"/>
- 			<input type="hidden"  name="userName"   value="${pageContext.request.userPrincipal.name}"/> 
-			<input type="submit" class="btn btn-info" value="Upload">
-		</div>
-	</form>	
+    <span>${pageContext.request.userPrincipal.name}</span> <br/>
+    <div class="form-group">
+        <label for="file">Image Upload</label>
+        <input type="file" name="file" class="form-control" id="file">
+      </div>
+    <div class="form-group">
+        <label for="name">Image Name:</label>
+        <input type="text"  name="name" class="form-control" id="name">
+      </div>
+    <div class="align-center">
+      <input type="hidden"  name="${_csrf.parameterName}"   value="${_csrf.token}"/>
+      <input type="hidden"  name="userName"   value="${pageContext.request.userPrincipal.name}"/> 
+      <input type="submit" class="btn btn-info" value="Upload">
+    </div>
+  </form> 
   </div>
 </div>
-	
+  
 </body>
 <!-- /container -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-<script src="${contextPath}/resources/js/bootstrap.min.js"></script>
+<!-- JS from CloudFront -->
+<script src="${cdnHelper.getJSUrl('bootstrap.min.js')}"></script>
 </html>
