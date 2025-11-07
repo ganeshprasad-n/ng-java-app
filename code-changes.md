@@ -1,4 +1,4 @@
-a comprehensive code changes documentation that covers all the modifications we made to transition from local deployment to AWS production. This will include the why, what happens if not done, and the collaboration aspects.
+A comprehensive code changes documentation that covers all the modifications we made to transition from local deployment to AWS production. This will include the why, what happens if not done, and the collaboration aspects.
 
 text
 # 🔧 CODE CHANGES FOR AWS PRODUCTION DEPLOYMENT
