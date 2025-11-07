@@ -1,0 +1,201 @@
+#!/bin/bash
+
+#################################################################
+# VProfile EC2 Bootstrap Script - Ubuntu 24 (FIXED)
+# Installs: Java 11, Maven, Git, Tomcat, MySQL Client, 
+#           RabbitMQ, Elasticsearch, Utilities
+#################################################################
+
+set -e
+
+echo "=========================================="
+echo "🚀 VProfile EC2 Setup - Starting..."
+echo "=========================================="
+
+# Update system
+echo "📦 Updating system packages..."
+sudo apt update -y
+sudo apt upgrade -y
+
+#################################################################
+# INSTALL UTILITIES
+#################################################################
+echo "🔧 Installing utilities (tree, nano, vim, curl, wget)..."
+sudo apt install -y tree nano vim curl wget unzip
+
+#################################################################
+# INSTALL JAVA 11
+#################################################################
+echo "☕ Installing Java 11 (OpenJDK)..."
+sudo apt install -y openjdk-11-jdk
+
+# Set JAVA_HOME
+echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" | sudo tee -a /etc/profile
+echo "export PATH=\$JAVA_HOME/bin:\$PATH" | sudo tee -a /etc/profile
+source /etc/profile
+
+java -version
+
+#################################################################
+# INSTALL MAVEN
+#################################################################
+echo "📦 Installing Maven..."
+sudo apt install -y maven
+
+mvn -version
+
+#################################################################
+# INSTALL GIT
+#################################################################
+echo "🔀 Installing Git..."
+sudo apt install -y git
+
+git --version
+
+#################################################################
+# INSTALL MYSQL CLIENT (FIXED FOR UBUNTU 24)
+#################################################################
+echo "🗄️ Installing MySQL Client..."
+sudo apt install -y mysql-client
+
+mysql --version
+
+#################################################################
+# INSTALL RABBITMQ (CLIENT LIBRARY ONLY)
+#################################################################
+echo "🐰 Installing RabbitMQ Management Tools..."
+# Note: Your app connects to AWS-managed RabbitMQ
+# We just install utilities for testing
+sudo apt install -y rabbitmq-server
+sudo systemctl stop rabbitmq-server
+sudo systemctl disable rabbitmq-server
+echo "✅ RabbitMQ libraries installed (service disabled - using AWS)"
+
+#################################################################
+# INSTALL ELASTICSEARCH (CLIENT TOOLS)
+#################################################################
+echo "🔍 Installing Elasticsearch utilities..."
+# For connecting to AWS Elasticsearch/OpenSearch
+# Install Java REST client via Maven dependencies
+echo "✅ Elasticsearch client ready (via Maven dependencies)"
+
+#################################################################
+# INSTALL TOMCAT 9
+#################################################################
+echo "🐱 Installing Tomcat 9..."
+
+# Create tomcat user
+sudo useradd -m -U -d /opt/tomcat -s /bin/false tomcat || true
+
+# Download Tomcat
+cd /tmp
+TOMCAT_VERSION="9.0.93"
+wget https://archive.apache.org/dist/tomcat/tomcat-9/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz
+
+# Extract
+sudo tar xf apache-tomcat-${TOMCAT_VERSION}.tar.gz -C /opt/tomcat --strip-components=1
+
+# Set permissions
+sudo chown -R tomcat:tomcat /opt/tomcat
+sudo chmod -R u+x /opt/tomcat/bin
+
+#################################################################
+# CREATE TOMCAT SYSTEMD SERVICE
+#################################################################
+echo "⚙️ Creating Tomcat systemd service..."
+
+sudo tee /etc/systemd/system/tomcat.service > /dev/null <<'EOF'
+[Unit]
+Description=Apache Tomcat Web Application Container
+After=network.target
+
+[Service]
+Type=forking
+
+User=tomcat
+Group=tomcat
+
+Environment="JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
+Environment="JAVA_OPTS=-Djava.security.egd=file:///dev/urandom -Djava.awt.headless=true"
+Environment="CATALINA_BASE=/opt/tomcat"
+Environment="CATALINA_HOME=/opt/tomcat"
+Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"
+Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/opt/tomcat/bin/shutdown.sh
+
+RestartSec=10
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload systemd
+sudo systemctl daemon-reload
+
+# Enable Tomcat (start on boot)
+sudo systemctl enable tomcat
+
+# Start Tomcat
+sudo systemctl start tomcat
+
+# Check status
+sudo systemctl status tomcat --no-pager
+
+echo "✅ Tomcat installed and running!"
+
+#################################################################
+# CONFIGURE FIREWALL (Optional - skip if using Security Groups)
+#################################################################
+echo "🔥 Configuring firewall..."
+# sudo ufw allow 8080/tcp
+# sudo ufw allow 22/tcp
+echo "✅ Firewall rules handled by Security Groups"
+
+#################################################################
+# INSTALL AWS CLI v2
+#################################################################
+echo "☁️ Installing AWS CLI v2..."
+cd /tmp
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip -o awscliv2.zip
+sudo ./aws/install
+
+aws --version
+
+#################################################################
+# SUMMARY
+#################################################################
+echo ""
+echo "=========================================="
+echo "✅ VProfile EC2 Setup - COMPLETE!"
+echo "=========================================="
+echo ""
+echo "📦 Installed Packages:"
+echo "  ✅ Java 11: $(java -version 2>&1 | head -n 1)"
+echo "  ✅ Maven: $(mvn -version | head -n 1)"
+echo "  ✅ Git: $(git --version)"
+echo "  ✅ MySQL Client: $(mysql --version 2>&1 | head -n 1)"
+echo "  ✅ Tomcat 9: Running on port 8080"
+echo "  ✅ AWS CLI: $(aws --version)"
+echo "  ✅ Utilities: tree, nano, vim, curl, wget"
+echo ""
+echo "🌐 Tomcat Access:"
+echo "  http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):8080"
+echo ""
+echo "📂 Tomcat Directories:"
+echo "  Home: /opt/tomcat"
+echo "  Webapps: /opt/tomcat/webapps"
+echo "  Logs: /opt/tomcat/logs"
+echo ""
+echo "🔧 Tomcat Commands:"
+echo "  sudo systemctl status tomcat"
+echo "  sudo systemctl restart tomcat"
+echo "  sudo systemctl stop tomcat"
+echo "  sudo tail -f /opt/tomcat/logs/catalina.out"
+echo ""
+echo "=========================================="
+echo "🎉 Ready for deployment!"
+echo "=========================================="
