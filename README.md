@@ -1,4 +1,4 @@
-# VProfile Java Application - Complete Setup Guide
+# VProfile Java Application - Complete Setup Guide on local environment (Single server - Ubunu)
 
 **Version:** 1.0  
 **Last Updated:** November 2025  
