@@ -1,4 +1,4 @@
-text
+
 # 🚀 VProfile Application - Fedora Local Deployment Guide
 
 > **Complete step-by-step guide for deploying vProfile Java web application on Fedora 42**    
@@ -77,7 +77,6 @@ This document describes a **step-by-step, copy-paste-ready guide** to prepare a 
 ├─ Memcached (Port 11211)
 └─ Backend Services
 
-text
 
 ### Tech Stack
 
@@ -140,7 +139,6 @@ chmod +x setup-fedora.sh
 Run the script
 ./setup-fedora.sh
 
-text
 
 ### What Gets Installed
 
@@ -172,14 +170,12 @@ Should show: openjdk version "11.0.x" ... Temurin
 Check Maven
 mvn -version
 
-text
 
 **Expected Output:**
 All services should show: Active: active (running)
 Java 11 from Adoptium Temurin
 Maven 3.x
 
-text
 
 ---
 
@@ -213,7 +209,6 @@ Explore project structure
 ls -la
 tree . # If tree is installed
 
-text
 
 ### ✅ Checkpoint 1: Verify Repository Structure
 
@@ -243,7 +238,7 @@ If Repository not found
 → Check URL and internet connection
 If Permission denied
 → Ensure correct git URL (public repo)
-text
+
 
 ---
 
@@ -265,7 +260,7 @@ MySQL on Fedora/RHEL uses different default authentication than Ubuntu. We'll co
 
 sudo mysql_secure_installation
 
-text
+
 
 **When prompted, answer:**
 Set root password: y
@@ -276,14 +271,13 @@ Disallow root login remotely: y
 Remove test database: y
 Reload privilege tables: y
 
-text
+
 
 #### 2. Login to MySQL
 
 sudo mysql -u root -p
 
-Enter password: Admin@54321
-text
+Enter password: Admin@54321 (example)
 
 #### 3. Create Application Database
 
@@ -292,7 +286,7 @@ SHOW DATABASES;
 USE accounts;
 EXIT;
 
-text
+
 
 **Expected Output:**
 +--------------------+
@@ -304,7 +298,7 @@ text
 | performance_schema |
 +--------------------+
 
-text
+
 
 ### 👤 MySQL User Management
 
@@ -316,7 +310,7 @@ Login as root
 sudo mysql -u root -p
 
 Enter password: Admin@54321
-text
+
 undefined
 -- Create dedicated user for vprofile app
 CREATE USER 'vprofile_app'@'localhost' IDENTIFIED BY 'vprofile@54321';
@@ -336,7 +330,7 @@ SELECT user, host FROM mysql.user;
 
 EXIT;
 
-text
+
 
 #### Test the New User
 
@@ -344,7 +338,7 @@ mysql -u vprofile_app -p -e "SHOW DATABASES;"
 
 Enter password: vprofile@54321
 Should see: information_schema, accounts, performance_schema
-text
+
 
 ### Import Database Schema
 
@@ -362,7 +356,7 @@ Enter password: vprofile@54321
 Verify tables
 mysql -u root -p -e "USE accounts; SHOW TABLES;"
 
-text
+
 
 **Expected Output:**
 +--------------------+
@@ -373,14 +367,14 @@ text
 | user_role |
 +--------------------+
 
-text
+
 
 ### ✅ Checkpoint 2: Verify Database Setup
 
 Test database connection
 mysql -u vprofile_app -pvprofile@54321 -e "USE accounts; SELECT COUNT(*) FROM user;"
 
-text
+
 
 - ✅ Database `accounts` created
 - ✅ Tables imported: user, role, user_role
@@ -410,7 +404,7 @@ sudo chmod +r src/main/resources/db_backup.sql
 If tables not importing (verbose mode)
 mysql -u root -p accounts < src/main/resources/db_backup.sql --verbose
 
-text
+
 
 ---
 
@@ -426,13 +420,13 @@ Configuring `application.properties` to connect to MySQL, RabbitMQ, Memcached, a
 
 cd ~/vprofile-project/ng-java-app
 
-text
+
 
 ### Create/Update application.properties
 
 nano src/main/resources/application.properties
 
-text
+
 
 **Paste this configuration:**
 
@@ -460,7 +454,7 @@ elasticsearch.port=9300
 elasticsearch.cluster=vprofile
 elasticsearch.node=vprofilenode
 
-text
+
 
 **Alternative: Create using here-doc:**
 
@@ -493,7 +487,6 @@ EOF
 Verify
 cat src/main/resources/application.properties
 
-text
 
 ### ✅ Checkpoint 3: Verify Configuration
 
@@ -529,7 +522,7 @@ sudo chown $USER:$USER src/main/resources/application.properties
 If services not running
 sudo systemctl status mysql rabbitmq-server memcached elasticsearch
 
-text
+
 
 ---
 
@@ -547,7 +540,7 @@ Maven executes phases sequentially:
 
 validate → compile → test → package → verify → install → deploy
 
-text
+
 
 ### Common Maven Commands
 
@@ -573,7 +566,6 @@ mvn clean install -DskipTests
 Alternative: with tests
 mvn clean install
 
-text
 
 ### Verify Build Success
 
@@ -594,7 +586,6 @@ text
 -rw-rw-r-- 1 ngp ngp 50M Nov 9 06:00 target/vprofile-v2.war
 target/vprofile-v2.war: Java archive data (JAR)
 
-text
 
 ### ✅ Checkpoint 4: Verify Build Success
 
@@ -635,7 +626,6 @@ mvn dependency:tree # View dependency tree
 If tests fail (but want to continue)
 mvn clean install -DskipTests
 
-text
 
 ---
 
@@ -666,7 +656,6 @@ Verify again
 groups
 
 Should show tomcat in the list
-text
 
 #### Set Directory Permissions
 
@@ -676,7 +665,6 @@ Verify
 ls -ld /opt/tomcat9/webapps
 
 Should show: drwxrwxr-x ... tomcat tomcat ... /opt/tomcat9/webapps
-text
 
 ### Manual Deployment Steps
 
@@ -702,7 +690,6 @@ Step 6: Verify deployment
 ls -la /opt/tomcat9/webapps/ | grep ROOT
 
 Should show both ROOT.war and ROOT/ directory
-text
 
 ### Automated Deployment Script
 
@@ -723,7 +710,6 @@ chmod +x deployment-fedora.sh
 Run deployment
 ./deployment-fedora.sh
 
-text
 
 ### Monitoring & Logs
 
@@ -739,7 +725,6 @@ sudo grep -i "error|exception|failed" /opt/tomcat9/logs/catalina.out | tail -30
 If required, restart Tomcat
 sudo systemctl restart tomcat9
 
-text
 
 ### ✅ Checkpoint 5: Verify Deployment
 
@@ -759,7 +744,7 @@ Check logs for success message
 sudo grep "Server startup" /opt/tomcat9/logs/catalina.out | tail -1
 
 Should show: Server startup in [XXXX] milliseconds
-text
+
 
 - ✅ Tomcat service running
 - ✅ WAR file in webapps directory
@@ -799,7 +784,7 @@ If WAR not deploying
 sudo tail -f /opt/tomcat9/logs/catalina.out
 
 Look for deployment messages
-text
+
 
 ### Alternative: Deploy with Context Path
 
@@ -838,7 +823,7 @@ Should return HTML content, not 404 error
 Monitor logs for errors
 sudo tail -f /opt/tomcat9/logs/catalina.out | grep -i "error|warn|exception"
 
-text
+
 
 ### Manual Browser Testing
 
@@ -846,12 +831,11 @@ text
 
 http://VM-IP:8080/
 
-text
 
 **Example:**
 http://10.115.108.134:8080/
 
-text
+
 
 **Test these features:**
 
@@ -879,7 +863,6 @@ EOF
 chmod +x ~/scripts/check-services.sh
 ~/scripts/check-services.sh
 
-text
 
 **Expected Output:**
 === VProfile Service Check ===
@@ -890,7 +873,6 @@ Memcached: OK ✅
 ElasticSearch: OK ✅
 Tomcat: OK ✅
 
-text
 
 ### ✅ Checkpoint 6: Full Application Verification
 
@@ -932,7 +914,6 @@ sudo netstat -tulpn | grep 3306
 Check MySQL service status
 sudo systemctl status mysql
 
-text
 
 ### Service Connection Problems
 
@@ -945,7 +926,6 @@ nc -z localhost 5672 && echo "RabbitMQ OK" # RabbitMQ
 mysql -u root -p'Admin@54321' -e "SELECT 1;" # MySQL
 curl http://localhost:9200 # ElasticSearch
 
-text
 
 ### Application Debugging & Logs
 
@@ -1007,7 +987,6 @@ sudo tail -f /opt/tomcat9/logs/localhost.*.log
 Step 5: Verify WAR integrity
 jar -tf ~/vprofile-project/ng-java-app/target/vprofile-v2.war | head
 
-text
 
 **Fixes:**
 
@@ -1026,7 +1005,7 @@ sudo chown tomcat:tomcat /opt/tomcat9/webapps/vprofile-v2.war
 sudo systemctl start tomcat9
 
 Access at: http://VM-IP:8080/vprofile-v2/
-text
+
 
 **Pro tip:** Always check logs first — 90% of issues are visible there.
 
@@ -1088,7 +1067,6 @@ text
 chmod +x ~/scripts/verify-vprofile.sh
 ~/scripts/verify-vprofile.sh
 
-text
 
 ---
 
@@ -1213,7 +1191,6 @@ This workflow is used by:
 │ ROOT.war │ │ ROOT.war │
 └──────────┘ └──────────┘
 
-text
 
 **Characteristics:**
 - One WAR per container/VM
@@ -1231,7 +1208,6 @@ text
 │ admin.war → /admin/ │
 └──────────────────────────────┘
 
-text
 
 **Characteristics:**
 - Multiple WARs on single Tomcat
@@ -1282,7 +1258,6 @@ export DB_PASSWORD=$(aws secretsmanager get-secret-value --secret-id prod/vprofi
 Or use Spring Boot profiles
 java -jar app.jar --spring.profiles.active=prod
 
-text
 
 ### 📚 Additional Resources
 
