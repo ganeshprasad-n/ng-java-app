@@ -1,5 +1,17 @@
 #!/bin/bash
-
+################################################################################
+# VProfile Java Application - Automated Deployment Script
+# 
+# Purpose: Automating build and deployment for VProfile application
+# Tested On: Fedora 42
+# Author: Ganeshprasad N
+# Created: $(date +%Y-%m-%d)
+# Usage: ./deployment-fedora.sh
+# 
+# Features:
+# - Simple and straightforward commands
+# - Safe to run multiple times
+################################################################################
 
 echo "═══════════════════════════════════════════"
 echo "🚀 VPROFILE DEPLOYMENT"
