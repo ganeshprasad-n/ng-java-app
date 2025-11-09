@@ -1,305 +1,384 @@
-# VProfile Java Application - Complete Setup Guide on local environment (Single server - Ubunu)
+🚀 VProfile Application - Fedora Local Deployment Guide
+Complete step-by-step guide for deploying vProfile Java web application on Fedora 42
+Last Updated: 09 November 2025
+Status: ✅ Production Ready | 📝 Tested & Verified
 
-**Version:** 1.0  
-**Last Updated:** November 2025  
-**Tested On:** Ubuntu 24.04 LTS  
-**Status:** Production Ready ✓
+📋 Table of Contents
+🎯 Overview
 
----
+🙏 Acknowledgments
 
-## Table of Contents
+🏗️ Architecture
 
-1. [Project Overview](#project-overview)
-2. [Quick Start](#quick-start)
-3. [Prerequisites Script](#prerequisites-script)
-4. [Stage 1: MySQL Configuration](#stage-1-mysql-configuration)
-5. [Stage 2: Application Setup](#stage-2-application-setup)
-6. [Stage 3: Tomcat Deployment](#stage-3-tomcat-deployment)
-7. [Stage 4: Network Configuration](#stage-4-network-configuration)
-8. [Troubleshooting](#troubleshooting)
-9. [Verification Checklist](#verification-checklist)
+📋 Prerequisites
 
----
+🎯 Phase 1: Fedora Environment Setup
 
-## Project Overview
+Step 1: Run Setup Script
 
-**VProfile** is an enterprise-grade Java web application demonstrating modern distributed architecture with multi-service integration.
+What Gets Installed
 
-### Technology Stack
+🎯 Phase 2: Application Setup & Deployment
 
-| Component | Purpose | Port |
-|-----------|---------|------|
-| **Spring MVC** | Web Framework | 8080 |
-| **Spring Security** | Authentication | N/A |
-| **MySQL 8.0** | Database | 3306 |
-| **RabbitMQ** | Message Queue | 5672 |
-| **Memcached** | Cache Layer | 11211 |
-| **ElasticSearch** | Search Engine | 9200 |
-| **Tomcat 9** | App Server | 8080 |
+📥 Stage 1: Clone Repository
 
-### Learning Outcomes
+🗄️ Stage 2: Database Setup
 
-After completing this setup, you will understand:
+⚙️ Stage 3: Application Configuration
 
-- Multi-service distributed systems architecture
-- Java application deployment and configuration
-- Service integration and communication patterns
-- DevOps automation and scripting
-- Troubleshooting and system diagnostics
+🔨 Stage 4: Build Application
 
----
+🚀 Stage 5: Deploy to Tomcat
 
-## Quick Start
+🌐 Stage 6: Testing & Verification
 
-### For Beginners (Recommended)
+🔧 Stage 7: Troubleshooting
 
-Step 1: Run automated installation
-bash setup-prerequisites.sh
+📋 Final Verification
 
-Step 2: Follow this README sections sequentially
-Stage 1 → Stage 2 → Stage 3 → Stage 4
-text
+🎓 What You've Learned
 
-**Total Time:** ~50 minutes
+🏢 Real-World Deployment Strategies
 
-### For Experienced DevOps
+📝 Final Notes & Next Steps
 
-Step 1: Run script
-bash setup-prerequisites.sh
+🎯 Overview
+⬆️ Back to Top
 
-Step 2: Configure MySQL (next section)
-sudo mysql
+This document describes a step-by-step, copy-paste-ready guide to prepare a Fedora environment, build the Java web application (vProfile), configure required services, and deploy to Tomcat.
 
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Admin@54321';
-Step 3: Deploy application
-cd ~/java-app/JavaProject
-mvn clean package
-sudo cp target/vprofile-v2.war /opt/tomcat9/webapps/ROOT.war
-sudo systemctl restart tomcat9
+📌 Important Note
+No existing information has been changed — the content has only been reorganized, enhanced for clarity, and arranged for easier use.
 
-Step 4: Test
-curl http://localhost:8080/
+🙏 Acknowledgments
+⬆️ Back to Top
+
+Original Repository:
+https://github.com/seunayolu/JavaProject.git
+Thanks to Seunayolu for the source code!
+
+Modified Repository (Use This):
+https://github.com/ganeshprasad-n/ng-java-app.git
+Branch: fedora-local
+
+🏗️ Architecture
+⬆️ Back to Top
 
 text
+┌─────────────────────────────────────────────────────┐
+│ USER BROWSER (Windows/Mac Host)                     │
+│ Accesses: http://VM-IP:8080/                        │
+└────────────────────┬────────────────────────────────┘
+                     │
+                     ↓
+┌─────────────────────────────────────────────────────┐
+│ TOMCAT 9 (Port 8080)                                │
+│ ├─ vprofile-v2.war (ROOT context)                   │
+│ └─ Spring Boot Application                          │
+└────────┬───────────────────┬────────────────────────┘
+         │                   │
+         ↓                   ↓
+    ┌─────────────┐  ┌─────────────────┐
+    │   MySQL     │  │   ElasticSearch │
+    │  (Port 3306)│  │   (Port 9300)   │
+    └─────────────┘  └─────────────────┘
+         │
+         ├─ RabbitMQ (Port 5672)
+         ├─ Memcached (Port 11211)
+         └─ Backend Services
+Tech Stack
+Component	Technology	Version	Purpose
+Backend	Spring Boot	4.2.0	Application framework
+Frontend	JSP/HTML/CSS/JS	-	User interface
+Database	MySQL	8.x	Data persistence
+Cache	Memcached	Latest	Session caching
+Message Queue	RabbitMQ	Latest	Async operations
+Search	ElasticSearch	7.x	Search functionality
+Server	Apache Tomcat	9.0.85	Servlet container
+Build Tool	Maven	3.x	Dependency management
+Java	Adoptium Temurin JDK	11	Runtime environment
+📋 Prerequisites
+⬆️ Back to Top
 
-**Total Time:** ~15-20 minutes
+System Requirements
+OS: Fedora 42 (tested) or compatible Linux
 
----
+RAM: Minimum 4GB (8GB recommended)
 
-## Prerequisites Script
+Disk Space: 10GB free space
 
-### Automated Installation
+Network: Internet connection for downloads
 
-The `setup-prerequisites.sh` script automates all prerequisite installations:
+Required Knowledge
+Basic Linux command line
 
-Make script executable
-chmod +x setup-prerequisites.sh
+Understanding of terminal/bash
 
-Run the script
-bash setup-prerequisites.sh
+Familiarity with text editors (nano/vim)
 
-text
+🎯 Phase 1 — Fedora Environment Setup
+⬆️ Back to Top
 
-### What Gets Installed
+Step 1 — Run Setup Script
+Create a folder for scripts and run the automated setup script.
 
-The script automatically installs and configures:
+📁 Script Files Available:
+Google Drive Folder - Setup Scripts
 
-**[OK] Java 11 OpenJDK**
-- Version: 11.x
-- Path: /usr/lib/jvm/java-11-openjdk-amd64
+Script: setup-fedora.sh
 
-**[OK] Apache Maven**
-- Version: 3.8+
-- Build tool for Java applications
+bash
+# Create scripts directory
+mkdir -p ~/scripts
+cd ~/scripts
 
-**[OK] MySQL 8.0 Server**
-- Port: 3306
-- Status: Running and enabled
+# Create the script file
+nano setup-fedora.sh
 
-**[OK] Tomcat 9 Application Server**
-- Version: 9.0.85
-- Location: /opt/tomcat9
-- Port: 8080
-- User: tomcat
-- Status: Running and enabled
+# Copy the content from setup-fedora.sh file in the repo
 
-**[OK] RabbitMQ Message Queue**
-- Port: 5672
-- Status: Running and enabled
+# Make executable
+chmod +x setup-fedora.sh
 
-**[OK] Memcached Caching Service**
-- Port: 11211
-- Status: Running and enabled
+# Run the script
+./setup-fedora.sh
+What Gets Installed
+⬆️ Back to Top
 
-**[OK] ElasticSearch Search Engine**
-- Version: 7.x
-- Port: 9200
-- Status: Running and enabled
+Component	Description	Service Port
+Adoptium Temurin JDK 11	Java runtime (required for Spring 4.2.0)	-
+Apache Maven	Build automation tool	-
+MySQL Server	Relational database	3306
+RabbitMQ	Message broker	5672
+Memcached	Caching service	11211
+ElasticSearch	Search engine	9200, 9300
+Apache Tomcat 9	Servlet container	8080
+AWS CLI v2	AWS command line (optional)	-
+Development Tools	git, vim, curl, wget, etc.	-
+✅ Verification
+After script completes, verify all services are running:
 
-**[OK] Development Tools**
-- git, curl, wget, net-tools, vim, tree
+bash
+# Check service status
+sudo systemctl status mysqld rabbitmq-server memcached elasticsearch tomcat9
 
-### Installation Time
+# Check Java version
+java -version
+# Should show: openjdk version "11.0.x" ... Temurin
 
-- **First Run:** 10-15 minutes (includes downloads)
-- **System Impact:** ~2-3 GB disk space
-- **Network Required:** Yes (for package downloads)
-
-### Verify Installation
-
-After the script completes, verify all services are running:
-
-Check all services
-sudo systemctl status mysql rabbitmq-server memcached elasticsearch tomcat9
-
-Verify ports
-sudo netstat -tulpn | grep -E ':3306|:8080|:5672|:11211|:9200'
-
-Expected output: All services show "active (running)"
-text
-
----
-
-## Stage 1: MySQL Configuration
-
-### Important: Password Setup
-
-MySQL on Ubuntu 24.04 uses `auth_socket` authentication by default. You must manually set a password.
-
-### Step 1: Access MySQL
-
-sudo mysql
-
-text
-
-**You should see the MySQL prompt:**
-
-mysql>
-
-text
-
-### Step 2: Set Root Password
-
-**Type this exactly:**
-
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Admin@54321';
-
-text
-
-**Expected output:**
-Query OK, 0 rows affected (0.01 sec)
+# Check Maven
+mvn -version
+Expected Output:
 
 text
+All services should show: Active: active (running)
+Java 11 from Adoptium Temurin
+Maven 3.x
+🎯 Phase 2 — Application Setup & Deployment Guide
+⬆️ Back to Top
 
-### Step 3: Reload Privileges
+📥 STAGE 1 — Clone Repository & Understand Structure
+⬆️ Back to Top
 
+What We're Doing
+Grabbing the application source code and reviewing the project structure.
+
+Commands
+bash
+# Create workspace
+mkdir -p ~/vprofile-project
+cd ~/vprofile-project
+
+# Clone the repository (fedora-local branch only)
+git clone --branch fedora-local --single-branch https://github.com/ganeshprasad-n/ng-java-app.git
+
+# Navigate to project
+cd ng-java-app
+
+# Explore project structure
+ls -la
+tree .  # If tree is installed
+✅ Checkpoint 1 — Verify Repository Structure
+Ensure these directories and files exist:
+
+✅ src/main/java/ - Java source code
+
+✅ src/main/resources/ - Configuration files
+
+✅ src/main/webapp/ - JSP, CSS, JS files
+
+✅ pom.xml - Maven build configuration
+
+✅ src/main/resources/db_backup.sql - Database schema
+
+📖 Why This Structure?
+Aspect	Explanation
+Maven Standard Directory Layout	Industry standard for Java projects
+Separation of Concerns	Code, configs, and web resources in separate folders
+pom.xml	Defines dependencies and build process
+db_backup.sql	Contains database schema and initial data
+⚠️ Possible Issues & Solutions
+bash
+# If Git not found
+sudo dnf install git -y
+
+# If Repository not found
+# → Check URL and internet connection
+
+# If Permission denied
+# → Ensure correct git URL (public repo)
+🗄️ STAGE 2 — Database Setup
+⬆️ Back to Top
+
+What We're Doing
+Creating the MySQL database and importing the schema that the application needs.
+
+⚠️ Important: MySQL Authentication on Fedora
+MySQL on Fedora/RHEL uses different default authentication than Ubuntu. We'll configure password-based authentication.
+
+Step-by-Step Setup
+1. Run MySQL Secure Installation
+bash
+sudo mysql_secure_installation
+When prompted, answer:
+
+text
+Set root password: y
+New password: Admin@54321
+Re-enter password: Admin@54321
+Remove anonymous users: y
+Disallow root login remotely: y
+Remove test database: y
+Reload privilege tables: y
+2. Login to MySQL
+bash
+sudo mysql -u root -p
+# Enter password: Admin@54321
+3. Create Application Database
+sql
+CREATE DATABASE accounts;
+SHOW DATABASES;
+USE accounts;
+EXIT;
+Expected Output:
+
+text
++--------------------+
+| Database           |
++--------------------+
+| accounts           |
+| information_schema |
+| mysql              |
+| performance_schema |
++--------------------+
+👤 MySQL User Management
+⬆️ Back to Top
+
+Create Dedicated Application User
+bash
+# Login as root
+sudo mysql -u root -p
+# Enter password: Admin@54321
+sql
+-- Create dedicated user for vprofile app
+CREATE USER 'vprofile_app'@'localhost' IDENTIFIED BY 'vprofile@54321';
+
+-- Grant privileges only to accounts database
+GRANT ALL PRIVILEGES ON accounts.* TO 'vprofile_app'@'localhost';
+
+-- For remote access (if needed)
+CREATE USER 'vprofile'@'%' IDENTIFIED BY 'vprofile@54321';
+GRANT ALL PRIVILEGES ON accounts.* TO 'vprofile'@'%';
+
+-- Apply privilege changes
 FLUSH PRIVILEGES;
 
-text
-
-**Expected output:**
-Query OK, 0 rows affected (0.00 sec)
-
-text
-
-### Step 4: Exit MySQL
+-- Verify user creation
+SELECT user, host FROM mysql.user;
 
 EXIT;
+Test the New User
+bash
+mysql -u vprofile_app -p -e "SHOW DATABASES;"
+# Enter password: vprofile@54321
+# Should see: information_schema, accounts, performance_schema
+Import Database Schema
+bash
+# Navigate to project
+cd ~/vprofile-project/ng-java-app
 
-text
-
-### Step 5: Verify Password Works
-
-Back in terminal, test the new password:
-
-mysql -u root -p
-
-text
-
-When prompted, enter: `Admin@54321`
-
-Inside MySQL, verify:
-
-SHOW DATABASES;
-EXIT;
-
-text
-
-### Step 6: Create Application Database
-
-mysql -u root -p -e "CREATE DATABASE accounts;"
-
-text
-
-When prompted, enter: `Admin@54321`
-
-**Verify database created:**
-
-mysql -u root -p -e "SHOW DATABASES;"
-
-text
-
-**You should see:**
-
-accounts
-information_schema
-mysql
-performance_schema
-sys
-
-text
-
-### Checkpoint: MySQL Ready
-
-- [OK] MySQL service running
-- [OK] Root password set to `Admin@54321`
-- [OK] Database `accounts` created
-- [OK] Connection test successful
-
----
-
-## Stage 2: Application Setup
-
-### Step 1: Clone Repository
-
-cd ~/java-app
-git clone https://github.com/seunayolu/JavaProject.git
-cd JavaProject
-
-text
-
-### Step 2: Import Database Schema
-
+# Import schema using root
 mysql -u root -p accounts < src/main/resources/db_backup.sql
+# Enter password: Admin@54321
 
-text
+# OR using application user
+mysql -u vprofile_app -p accounts < src/main/resources/db_backup.sql
+# Enter password: vprofile@54321
 
-When prompted, enter: `Admin@54321`
-
-**Verify import:**
-
+# Verify tables
 mysql -u root -p -e "USE accounts; SHOW TABLES;"
+Expected Output:
 
 text
++--------------------+
+| Tables_in_accounts |
++--------------------+
+| role               |
+| user               |
+| user_role          |
++--------------------+
+✅ Checkpoint 2 — Verify Database Setup
+bash
+# Test database connection
+mysql -u vprofile_app -pvprofile@54321 -e "USE accounts; SELECT COUNT(*) FROM user;"
+✅ Database accounts created
 
-**Expected tables:**
+✅ Tables imported: user, role, user_role
 
-role
-user
-user_role
+✅ Can connect with application user
+
+📖 Why This Step?
+Aspect	Explanation
+Data Persistence	MySQL stores user accounts and application data
+User Management	user_role table manages permissions
+Dedicated Database	Industry standard - one database per application
+Dedicated User	Principle of least privilege - app user has only necessary permissions
+⚠️ Common Issues
+bash
+# If MySQL password issues
+sudo mysql -u root
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'newpassword';
+
+# If file not found
+ls -la src/main/resources/db_backup.sql
+
+# If permission denied
+sudo chmod +r src/main/resources/db_backup.sql
+
+# If tables not importing (verbose mode)
+mysql -u root -p accounts < src/main/resources/db_backup.sql --verbose
+⚙️ STAGE 3 — Application Configuration
+⬆️ Back to Top
+
+What We're Doing
+Configuring application.properties to connect to MySQL, RabbitMQ, Memcached, and Elasticsearch.
+
+Navigate to Project
+bash
+cd ~/vprofile-project/ng-java-app
+Create/Update application.properties
+bash
+nano src/main/resources/application.properties
+Paste this configuration:
 
 text
-
-### Step 3: Update Application Configuration
-
-cat > src/main/resources/application.properties << 'EOF'
-#JDBC Configuration
+#JDBC Configuration for Database Connection
 jdbc.driverClassName=com.mysql.jdbc.Driver
 jdbc.url=jdbc:mysql://localhost:3306/accounts?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
-jdbc.username=root
-jdbc.password=Admin@54321
+jdbc.username=vprofile_app
+jdbc.password=vprofile@54321
 
-#Memcached Configuration
+#Memcached Configuration For Active and StandBy Host
 memcached.active.host=localhost
 memcached.active.port=11211
 memcached.standBy.host=127.0.0.2
@@ -311,400 +390,776 @@ rabbitmq.port=5672
 rabbitmq.username=guest
 rabbitmq.password=guest
 
-#Elasticsearch Configuration
+#Elasticesearch Configuration
+elasticsearch.host=localhost
+elasticsearch.port=9300
+elasticsearch.cluster=vprofile
+elasticsearch.node=vprofilenode
+Alternative: Create using here-doc:
+
+bash
+cat > src/main/resources/application.properties << 'EOF'
+#JDBC Configuration for Database Connection
+jdbc.driverClassName=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/accounts?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+jdbc.username=vprofile_app
+jdbc.password=vprofile@54321
+
+#Memcached Configuration For Active and StandBy Host
+memcached.active.host=localhost
+memcached.active.port=11211
+memcached.standBy.host=127.0.0.2
+memcached.standBy.port=11211
+
+#RabbitMq Configuration
+rabbitmq.address=localhost
+rabbitmq.port=5672
+rabbitmq.username=guest
+rabbitmq.password=guest
+
+#Elasticesearch Configuration
 elasticsearch.host=localhost
 elasticsearch.port=9300
 elasticsearch.cluster=vprofile
 elasticsearch.node=vprofilenode
 EOF
 
+# Verify
+cat src/main/resources/application.properties
+✅ Checkpoint 3 — Verify Configuration
+✅ application.properties file created
+
+✅ All service connections point to localhost
+
+✅ MySQL credentials match your setup
+
+✅ All ports match running services
+
+📖 Why Each Configuration Matters
+Configuration	Purpose	Example
+JDBC	Java ↔ MySQL connection	jdbc.url=jdbc:mysql://localhost:3306/accounts
+Memcached	Session caching for performance	memcached.active.port=11211
+RabbitMQ	Async message processing	rabbitmq.port=5672
+ElasticSearch	Search functionality	elasticsearch.port=9300
+🏢 Industry Best Practices
+⚠️ Never commit passwords in VCS (only for learning here)
+
+✅ Use environment variables in production
+
+✅ Externalize configs for different environments (dev, staging, prod)
+
+✅ Use secrets management (AWS Secrets Manager, HashiCorp Vault)
+
+⚠️ Common Issues
+bash
+# If file creation fails
+vim src/main/resources/application.properties
+
+# If permission issue
+sudo chown $USER:$USER src/main/resources/application.properties
+
+# If services not running
+sudo systemctl status mysql rabbitmq-server memcached elasticsearch
+🔨 STAGE 4 — Build Application (WAR File)
+⬆️ Back to Top
+
+What We're Doing
+Building with Maven to compile Java code, resolve dependencies, and create a WAR file for Tomcat deployment.
+
+Maven Lifecycle Recap
+Maven executes phases sequentially:
+
 text
+validate → compile → test → package → verify → install → deploy
+Common Maven Commands
+Command	What It Does	When to Use
+mvn clean compile	Compile only (no package, no tests)	Quick syntax check during development
+mvn clean test	Compile + run unit tests	Before committing code
+mvn clean package	Compile + test + create WAR/JAR	Standard build
+mvn clean install	Full build + install to local repo	Industry standard ⭐
+Build the Application
+bash
+# Navigate to project root
+cd ~/vprofile-project/ng-java-app
 
-### Step 4: Build Application
+# Check we're in the right directory
+pwd
+ls pom.xml  # Should exist
 
-cd ~/java-app/JavaProject
-mvn clean package
+# Full build (recommended)
+mvn clean install -DskipTests
 
-text
-
-**This will take 3-5 minutes. Wait for:**
-
-BUILD SUCCESS
-
-text
-
-**Verify WAR file created:**
-
+# Alternative: with tests
+mvn clean install
+Verify Build Success
+bash
+# Check WAR file was created
 ls -lh target/vprofile-v2.war
 
+# Verify file size (should be 30-60MB typically)
+file target/vprofile-v2.war
+# Should show: Java archive data (JAR)
+
+# List WAR contents
+jar -tf target/vprofile-v2.war | head -20
+# Should show: META-INF/, WEB-INF/, etc.
+Expected Output:
+
 text
+-rw-rw-r-- 1 ngp ngp 50M Nov  9 06:00 target/vprofile-v2.war
+target/vprofile-v2.war: Java archive data (JAR)
+✅ Checkpoint 4 — Verify Build Success
+✅ mvn clean compile - no errors
 
-### Checkpoint: Application Built
+✅ mvn package - BUILD SUCCESS
 
-- [OK] Repository cloned
-- [OK] Database schema imported
-- [OK] Configuration updated
-- [OK] WAR file created
+✅ WAR file created: target/vprofile-v2.war
 
----
+✅ File size reasonable (30-60MB typical)
 
-## Stage 3: Tomcat Deployment
+📖 What's Happening During Build
+Phase	What Happens
+Clean	Deletes target/ directory
+Validate	Checks project structure and pom.xml
+Compile	Java files → bytecode (.class files)
+Test	Runs unit tests (JUnit/TestNG)
+Package	Creates WAR (Web Application Archive)
+Install	Copies to local Maven repository (~/.m2/)
+⚠️ Common Build Issues
+bash
+# If Java version mismatch
+mvn -version          # Check Maven's Java version
+java -version         # Check system Java version
+# Both should show Java 11
 
-### Note: Tomcat Already Installed
+# If network issues (dependency download fails)
+mvn clean package -o  # Use offline mode if dependencies cached
 
-Tomcat 9.0.85 is already installed and running from the prerequisites script.
+# If memory issues
+export MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=512m"
+mvn clean install
 
-- Location: `/opt/tomcat9`
-- User: `tomcat`
-- Service: `tomcat9`
-- Port: `8080`
-- Status: Running
+# If dependency errors
+mvn dependency:resolve
+mvn dependency:tree  # View dependency tree
 
-### Step 1: Stop Tomcat
+# If tests fail (but want to continue)
+mvn clean install -DskipTests
+🚀 STAGE 5 — Deploy to Tomcat
+⬆️ Back to Top
 
+What We're Doing
+Taking the WAR file and deploying it to the Tomcat servlet container.
+
+Prerequisites: One-Time Setup
+Add Your User to Tomcat Group
+bash
+# Add user to tomcat group
+sudo usermod -aG tomcat $USER
+
+# Verify
+groups $USER
+# Should show: ngp tomcat
+
+# Log out and back in for changes to take effect
+exit
+# SSH back in
+
+# Verify again
+groups
+# Should show tomcat in the list
+Set Directory Permissions
+bash
+sudo chmod 775 /opt/tomcat9/webapps
+
+# Verify
+ls -ld /opt/tomcat9/webapps
+# Should show: drwxrwxr-x ... tomcat tomcat ... /opt/tomcat9/webapps
+Manual Deployment Steps
+bash
+# Step 1: Stop Tomcat
 sudo systemctl stop tomcat9
+sleep 2
 
-text
-
-### Step 2: Remove Default Application
-
+# Step 2: Clean old deployment
 sudo rm -rf /opt/tomcat9/webapps/ROOT
+sudo rm -f /opt/tomcat9/webapps/ROOT.war
 
-text
-
-### Step 3: Deploy Your Application
-
-Navigate to your project directory first:
-
-cd ~/java-app/JavaProject
-
-text
-
-Then deploy:
-
-sudo cp target/vprofile-v2.war /opt/tomcat9/webapps/ROOT.war
+# Step 3: Deploy WAR
+sudo cp ~/vprofile-project/ng-java-app/target/vprofile-v2.war /opt/tomcat9/webapps/ROOT.war
 sudo chown tomcat:tomcat /opt/tomcat9/webapps/ROOT.war
 
-text
-
-### Step 4: Start Tomcat
-
+# Step 4: Start Tomcat
 sudo systemctl start tomcat9
 
-text
+# Step 5: Wait for deployment (30 seconds)
+sleep 30
 
-### Step 5: Wait for Deployment
+# Step 6: Verify deployment
+ls -la /opt/tomcat9/webapps/ | grep ROOT
+# Should show both ROOT.war and ROOT/ directory
+Automated Deployment Script
+⬆️ Back to Top
 
-Tomcat automatically extracts the WAR file:
+Script: deployment-fedora.sh
 
-sleep 15
+bash
+# Navigate to scripts directory
+cd ~/scripts
 
-text
+# Create deployment script
+nano deployment-fedora.sh
 
-### Step 6: Verify Deployment
+# Copy the content from deployment-fedora.sh file in the repo
 
-Check if application files exist:
+# Make executable
+chmod +x deployment-fedora.sh
 
+# Run deployment
+./deployment-fedora.sh
+Monitoring & Logs
+bash
+# Monitor deployment in real-time
+sudo tail -f /opt/tomcat9/logs/catalina.out
+
+# View last 200 lines
+sudo tail -200 /opt/tomcat9/logs/catalina.out
+
+# Search for errors
+sudo grep -i "error\|exception\|failed" /opt/tomcat9/logs/catalina.out | tail -30
+
+# If required, restart Tomcat
+sudo systemctl restart tomcat9
+✅ Checkpoint 5 — Verify Deployment
+bash
+# Check Tomcat service
+sudo systemctl status tomcat9
+# Should show: Active: active (running)
+
+# Check WAR file
+ls -lh /opt/tomcat9/webapps/ROOT.war
+# Should show: -rw-r--r-- 1 tomcat tomcat 50M ...
+
+# Check deployment extraction
 ls -la /opt/tomcat9/webapps/ROOT/
+# Should show WEB-INF/, META-INF/, etc.
+
+# Check logs for success message
+sudo grep "Server startup" /opt/tomcat9/logs/catalina.out | tail -1
+# Should show: Server startup in [XXXX] milliseconds
+✅ Tomcat service running
+
+✅ WAR file in webapps directory
+
+✅ Catalina logs show no severe errors
+
+✅ Deployment completion message in logs
+
+📖 Why Deploy as ROOT.war?
+Aspect	Explanation
+Root Context	App accessible at http://localhost:8080/ (no context path)
+No App Name in URL	Users don't need to remember /vprofile-v2/
+Main Application	Standard for primary application on a server
+Industry Practice	Microservices: one app per container as ROOT
+🏢 Industry Deployment Strategies
+Strategy	Use Case	URL Pattern
+ROOT deployment	Modern microservices, one app per Tomcat	http://host:8080/
+Context path deployment	Multiple apps on one Tomcat (legacy)	http://host:8080/app1/, http://host:8080/app2/
+Manager deployment	Web-based upload via Tomcat Manager	http://host:8080/manager/
+⚠️ Deployment Issues & Fixes
+bash
+# If Tomcat won't start
+sudo journalctl -u tomcat9 -f
+
+# If permission errors
+sudo chown -R tomcat:tomcat /opt/tomcat9/webapps/
+
+# If port 8080 in use
+sudo netstat -tulpn | grep 8080
+# Change port in /opt/tomcat9/conf/server.xml if needed
+
+# If WAR not deploying
+sudo tail -f /opt/tomcat9/logs/catalina.out
+# Look for deployment messages
+Alternative: Deploy with Context Path
+If you prefer accessing the app at http://localhost:8080/vprofile-v2/:
+
+bash
+sudo systemctl stop tomcat9
+sudo rm -rf /opt/tomcat9/webapps/ROOT* /opt/tomcat9/webapps/vprofile*
+sudo cp ~/vprofile-project/ng-java-app/target/vprofile-v2.war /opt/tomcat9/webapps/
+sudo chown tomcat:tomcat /opt/tomcat9/webapps/vprofile-v2.war
+sudo systemctl start tomcat9
+
+# Access at:
+# http://localhost:8080/vprofile-v2/
+🌐 STAGE 6 — Testing & Verification
+⬆️ Back to Top
+
+What We're Doing
+Verifying the application is working end-to-end with all services connected.
+
+Quick Tests from Terminal
+bash
+# Test Tomcat response
+curl -I http://localhost:8080/
+# Should return: HTTP/1.1 200 or HTTP/1.1 302 (redirect to /login)
+
+# Test application homepage
+curl http://localhost:8080/ | head -20
+# Should return HTML content, not 404 error
+
+# Monitor logs for errors
+sudo tail -f /opt/tomcat9/logs/catalina.out | grep -i "error\|warn\|exception"
+Manual Browser Testing
+From your host machine browser:
 
 text
-
-**Should show application files (not Tomcat default files)**
-
-### Step 7: Test Application
-
-curl http://localhost:8080/
+http://VM-IP:8080/
+Example:
 
 text
+http://10.115.108.134:8080/
+Test these features:
 
-**Should return HTML response (not error)**
+✅ Homepage loads
 
-### Step 8: Check Logs
+✅ Can navigate to /login
 
-sudo tail -20 /opt/tomcat9/logs/catalina.out
+✅ Can navigate to /registration
 
-text
+✅ Form inputs work
 
-**Look for "Successfully deployed" message**
+✅ No JavaScript errors in browser console (F12)
 
-### Checkpoint: Tomcat Deployment Complete
+Comprehensive Service Check
+bash
+# Create service check script
+cat > ~/scripts/check-services.sh << 'EOF'
+#!/bin/bash
+echo "=== VProfile Service Check ==="
+echo ""
 
-- [OK] WAR file copied to webapps
-- [OK] ROOT directory extracted with application
-- [OK] Tomcat service running
-- [OK] Application accessible on localhost:8080
+echo "MySQL: $(nc -z localhost 3306 && echo 'OK ✅' || echo 'FAIL ❌')"
+echo "RabbitMQ: $(nc -z localhost 5672 && echo 'OK ✅' || echo 'FAIL ❌')"
+echo "Memcached: $(nc -z localhost 11211 && echo 'OK ✅' || echo 'FAIL ❌')"
+echo "ElasticSearch: $(curl -s http://localhost:9200 > /dev/null && echo 'OK ✅' || echo 'FAIL ❌')"
+echo "Tomcat: $(curl -s http://localhost:8080 > /dev/null && echo 'OK ✅' || echo 'FAIL ❌')"
+EOF
 
----
-
-## Stage 4: Network Configuration
-
-### Step 1: Get VM IP Address
-
-hostname -I
-
-text
-
-**Example output:** `192.168.1.100`
-
-### Step 2: Enable Firewall (if needed)
-
-Check firewall status
-sudo ufw status
-
-If enabled, allow port 8080
-sudo ufw allow 8080/tcp
+chmod +x ~/scripts/check-services.sh
+~/scripts/check-services.sh
+Expected Output:
 
 text
+=== VProfile Service Check ===
 
-### Step 3: Test from Host Machine
+MySQL: OK ✅
+RabbitMQ: OK ✅
+Memcached: OK ✅
+ElasticSearch: OK ✅
+Tomcat: OK ✅
+✅ Checkpoint 6 — Full Application Verification
+✅ Tomcat responds on port 8080
 
-From your Windows browser:
+✅ Application homepage loads
 
-http://192.168.1.100:8080/
+✅ No errors in browser console
 
-text
+✅ Database operations work (register/login)
 
-(Replace with your actual VM IP)
+✅ All services connected
 
-### Step 4: Test Application Endpoints
+✅ Application is LIVE! 🎉
 
-From VM
-curl http://localhost:8080/
-curl http://localhost:8080/login
-curl http://localhost:8080/registration
+📖 What to Test
+Feature	How to Test	Expected Result
+Homepage	Visit http://VM-IP:8080/	Shows login/registration page
+User Registration	Fill registration form	New user created in database
+User Login	Login with credentials	Session created, redirect to dashboard
+Database Query	Login (triggers SELECT query)	User data loaded from MySQL
+Session Caching	Login, refresh page	Session persists (Memcached working)
+Search	Use search feature	ElasticSearch returns results
+🔧 STAGE 7 — Troubleshooting Common Issues
+⬆️ Back to Top
 
-text
+Database Connection Issues
+bash
+# Test MySQL connection
+mysql -u root -pAdmin@54321 -e "SELECT 1;"
 
-All should return HTTP 200 OK
+# Check application properties
+cat ~/vprofile-project/ng-java-app/src/main/resources/application.properties | grep jdbc
 
-### Checkpoint: Network Access Complete
-
-- [OK] VM IP obtained
-- [OK] Port 8080 accessible
-- [OK] Application responding
-- [OK] All endpoints working
-
----
-
-## Troubleshooting
-
-### MySQL Issues
-
-**Problem: Connection refused**
-
-Check MySQL running
-sudo systemctl status mysql
-
-Start if needed
-sudo systemctl start mysql
-
-Check port listening
+# Verify MySQL is listening
 sudo netstat -tulpn | grep 3306
 
+# Check MySQL service status
+sudo systemctl status mysql
+Service Connection Problems
+bash
+# Check all services status
+sudo systemctl status mysql rabbitmq-server memcached elasticsearch tomcat9
+
+# Test individual service connectivity
+echo "stats" | nc localhost 11211  # Memcached
+nc -z localhost 5672 && echo "RabbitMQ OK"  # RabbitMQ
+mysql -u root -p'Admin@54321' -e "SELECT 1;"  # MySQL
+curl http://localhost:9200  # ElasticSearch
+Application Debugging & Logs
+bash
+# Live log monitoring
+sudo tail -f /opt/tomcat9/logs/catalina.out
+
+# Check for specific errors
+sudo grep -i "error\|exception\|failed" /opt/tomcat9/logs/catalina.out | tail -10
+
+# Verify WAR extraction
+ls -la /opt/tomcat9/webapps/ROOT/
+
+# Check disk space
+df -h
+
+# Check memory usage
+free -h
+
+# Check Java process
+ps aux | grep tomcat
+Common Error Patterns
+Error Message	Cause	Solution
+Connection refused (localhost:3306)	MySQL not running	sudo systemctl start mysqld
+Access denied for user 'vprofile_app'	Wrong credentials	Check application.properties
+java.lang.OutOfMemoryError	Insufficient heap memory	Increase -Xmx in Tomcat config
+Address already in use (port 8080)	Port conflict	Change port or kill process using it
+ClassNotFoundException	Missing dependency	Rebuild with mvn clean install
+Debugging: 404 Error (Default Tomcat Page)
+⬆️ Back to Top
+
+Symptom: Tomcat default page shown instead of your app.
+
+Root cause: Default ROOT app still serving; your app either not deployed to ROOT or not extracted correctly.
+
+Systematic debugging steps:
+
+bash
+# Step 1: Check webapps directory
+sudo ls -la /opt/tomcat9/webapps/
+# Should show: ROOT.war and ROOT/ directory
+
+# Step 2: Monitor deployment logs
+sudo tail -f /opt/tomcat9/logs/catalina.out
+# Look for: "Deployment of web application archive [.../ROOT.war] has finished"
+
+# Step 3: Check if ROOT directory has content
+ls -la /opt/tomcat9/webapps/ROOT/
+# Should show: WEB-INF/, META-INF/, index.jsp, etc.
+
+# Step 4: Check application-specific logs
+sudo tail -f /opt/tomcat9/logs/localhost.*.log
+
+# Step 5: Verify WAR integrity
+jar -tf ~/vprofile-project/ng-java-app/target/vprofile-v2.war | head
+Fixes:
+
+bash
+# Option 1: Force redeploy
+sudo systemctl stop tomcat9
+sudo rm -rf /opt/tomcat9/webapps/ROOT*
+sudo cp ~/vprofile-project/ng-java-app/target/vprofile-v2.war /opt/tomcat9/webapps/ROOT.war
+sudo chown tomcat:tomcat /opt/tomcat9/webapps/ROOT.war
+sudo systemctl start tomcat9
+
+# Option 2: Deploy with context path (alternative)
+sudo systemctl stop tomcat9
+sudo rm -rf /opt/tomcat9/webapps/ROOT* /opt/tomcat9/webapps/vprofile*
+sudo cp ~/vprofile-project/ng-java-app/target/vprofile-v2.war /opt/tomcat9/webapps/vprofile-v2.war
+sudo chown tomcat:tomcat /opt/tomcat9/webapps/vprofile-v2.war
+sudo systemctl start tomcat9
+# Access at: http://VM-IP:8080/vprofile-v2/
+Pro tip: Always check logs first — 90% of issues are visible there.
+
+📋 Final Verification Script
+⬆️ Back to Top
+
+Save as verify-vprofile.sh and run:
+
+bash
+#!/bin/bash
+echo "=== VProfile Complete Verification ==="
+echo ""
+
+# 1. Service Status
+echo "1. Service Status:"
+echo "   MySQL: $(sudo systemctl is-active mysqld)"
+echo "   RabbitMQ: $(sudo systemctl is-active rabbitmq-server)"
+echo "   Memcached: $(sudo systemctl is-active memcached)"
+echo "   ElasticSearch: $(sudo systemctl is-active elasticsearch)"
+echo "   Tomcat: $(sudo systemctl is-active tomcat9)"
+echo ""
+
+# 2. Port Listening
+echo "2. Port Accessibility:"
+for port in 3306 5672 11211 9200 8080; do
+    nc -z localhost $port 2>/dev/null && echo "   Port $port: OPEN ✅" || echo "   Port $port: CLOSED ❌"
+done
+echo ""
+
+# 3. Application Health
+echo "3. Application Health:"
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/)
+echo "   HTTP Status: $HTTP_STATUS"
+if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "302" ]; then
+    echo "   Application: HEALTHY ✅"
+else
+    echo "   Application: UNHEALTHY ❌"
+fi
+echo ""
+
+# 4. Database Connectivity
+echo "4. Database Test:"
+DB_TEST=$(mysql -u root -p'Admin@54321' -e "SELECT COUNT(*) FROM accounts.user;" 2>/dev/null | tail -1)
+if [ -n "$DB_TEST" ]; then
+    echo "   Users in DB: $DB_TEST ✅"
+else
+    echo "   Database connection: FAILED ❌"
+fi
+echo ""
+
+echo "=== Verification Complete ==="
+Usage:
+
+bash
+chmod +x ~/scripts/verify-vprofile.sh
+~/scripts/verify-vprofile.sh
+🎓 What You've Learned
+⬆️ Back to Top
+
+Core Concepts Mastered
+Concept	What You Learned
+Git & Version Control	Clone and explore Java projects
+MySQL Database	Setup, user management, schema import
+Application Configuration	Connect Java to backend services
+Maven Build Tool	Compile, test, package Java applications
+Java Web Applications	WAR file structure and deployment
+Tomcat Server	Deploy and manage web applications
+Multi-tier Architecture	Frontend, backend, database, cache, queue integration
+DevOps Workflow	Build, test, deploy automation
+Linux System Admin	User management, permissions, service management
+Troubleshooting	Systematic debugging approach
+📚 Industry Skills
+You now understand:
+
+✅ How to setup a complete development environment
+
+✅ How Java applications are structured (Maven standard layout)
+
+✅ How to build and package applications
+
+✅ How to deploy to production servers
+
+✅ How to manage databases and services
+
+✅ How to troubleshoot deployment issues
+
+✅ Real-world DevOps practices
+
+🚀 Real-World Applications
+This workflow is used by:
+
+✅ DevOps Engineers
+
+✅ Backend Developers
+
+✅ Site Reliability Engineers (SRE)
+
+✅ System Administrators
+
+✅ Platform Engineers
+
+📝 Next Steps
+Automate Everything: Create scripts for repeated tasks
+
+Add CI/CD: Use Jenkins/GitLab for automatic builds
+
+Container Deployment: Move to Docker/Kubernetes
+
+Cloud Deployment: Deploy to AWS/Azure/GCP
+
+Advanced Monitoring: Add Prometheus/Grafana
+
+🏢 Real-World Deployment Strategies
+⬆️ Back to Top
+
+Single vs Multiple WAR Deployments
+Single WAR (ROOT.war)
+URL: http://localhost:8080/
+
+Use case: One application per Tomcat server (modern cloud approach)
+
+Pros:
+
+✅ Isolation - failures don't affect other apps
+
+✅ Easier scaling per service
+
+✅ Simpler troubleshooting
+
+✅ Recommended modern approach
+
+Cons:
+
+❌ Higher resource usage per app
+
+❌ More servers to manage
+
+Multiple WARs (context paths)
+URLs:
+
+http://localhost:8080/vprofile/ → vprofile.war
+
+http://localhost:8080/api/ → api.war
+
+http://localhost:8080/admin/ → admin.war
+
+Use case: Legacy/monolithic deployments or when multiple apps need to share a JVM
+
+Pros:
+
+✅ Cost-saving - one server for multiple apps
+
+✅ Shared resources (connection pools, etc.)
+
+✅ Lower infrastructure cost
+
+Cons:
+
+❌ Single point of failure
+
+❌ Resource contention
+
+❌ Complex troubleshooting
+
+Modern vs Legacy Comparison
+Aspect	Single WAR (Modern)	Multiple WARs (Legacy)
+Architecture	Microservices	Monolithic
+Scaling	Per service	All or nothing
+Deployment	Independent	Coordinated
+Resource Isolation	✅ High	❌ Low
+Cost	Higher (more instances)	Lower (shared instance)
+Complexity	Simple per service	Complex overall
+Failure Impact	Isolated	Cascading
+Recommended For	Cloud, Containers	On-premise, Legacy
+Real-World Strategies
+Modern Approach (Recommended)
 text
+┌─────────────────────────────────────────┐
+│ Load Balancer (Nginx / ALB / CloudFlare)│
+└────────────┬────────────────────────────┘
+             │
+      ┌──────┴──────┐
+      │             │
+┌─────▼────┐  ┌─────▼────┐
+│ Container│  │ Container│
+│ (Tomcat) │  │ (Tomcat) │
+│ ROOT.war │  │ ROOT.war │
+└──────────┘  └──────────┘
+Characteristics:
 
-**Problem: Wrong password**
+One WAR per container/VM
 
-Verify in application config
-cat src/main/resources/application.properties | grep jdbc.password
+Deployed as ROOT
 
-Should show: jdbc.password=Admin@54321
+Reverse proxy handles routing
+
+Horizontal scaling
+
+Legacy Approach
 text
+┌──────────────────────────────┐
+│ Single Tomcat Server         │
+├──────────────────────────────┤
+│ vprofile.war  → /vprofile/   │
+│ api.war       → /api/        │
+│ admin.war     → /admin/      │
+└──────────────────────────────┘
+Characteristics:
 
----
+Multiple WARs on single Tomcat
 
-### Tomcat Issues
+Context path routing
 
-**Problem: Tomcat won't start**
+Shared resources
 
-Check logs
-sudo tail -50 /opt/tomcat9/logs/catalina.out
+Vertical scaling
 
-Check service status
-sudo systemctl status tomcat9
+Recommendation for vProfile
+Use single ROOT.war deployment - aligns with modern standards and cloud-native practices.
 
-Check Java path
-echo $JAVA_HOME
+📝 Final Notes & Next Steps
+⬆️ Back to Top
 
-text
+📁 Provided Scripts
+Use these scripts for repeatable operations:
 
-**Problem: Port 8080 already in use**
+Script	Purpose	Location
+setup-fedora.sh	Environment setup	Google Drive
+deployment-fedora.sh	Application deployment	Google Drive
+verify-vprofile.sh	Health check	Above
+check-services.sh	Service status	Above
+🔒 Production Security Checklist
+⚠️ Before production deployment:
 
-Find process using port
-sudo netstat -tulpn | grep 8080
+❌ Do NOT store passwords in application.properties
 
-Stop conflicting service
-sudo kill -9 <PID>
+✅ Use environment variables or secrets manager
 
-Restart Tomcat
-sudo systemctl restart tomcat9
+✅ Enable HTTPS/TLS
 
-text
+✅ Change default passwords (MySQL root, RabbitMQ guest)
 
----
+✅ Enable firewall rules
 
-### Build Issues
+✅ Regular backups
 
-**Problem: mvn clean package fails**
+✅ Monitoring and alerting
 
-Check Java version
-java -version
+✅ Log aggregation
 
-Check Maven version
-mvn --version
+Example: Externalize Credentials
+bash
+# Production approach - use environment variables
+export DB_USERNAME=vprofile_app
+export DB_PASSWORD=$(aws secretsmanager get-secret-value --secret-id prod/vprofile/db --query SecretString --output text)
 
-Clean cache and retry
-mvn clean install -U
+# Or use Spring Boot profiles
+java -jar app.jar --spring.profiles.active=prod
+📚 Additional Resources
+Maven Documentation: https://maven.apache.org/
 
-text
+Tomcat Documentation: https://tomcat.apache.org/
 
----
+MySQL Documentation: https://dev.mysql.com/doc/
 
-### Network Issues
+Spring Boot: https://spring.io/projects/spring-boot
 
-**Problem: Can't access from host browser**
+Java Documentation: https://docs.oracle.com/en/java/
 
-From VM, verify local access
-curl http://localhost:8080/
+🙋 Getting Help
+If you encounter issues:
 
-From host, ping VM
-ping 192.168.1.100
+Check logs first: sudo tail -f /opt/tomcat9/logs/catalina.out
 
-Check firewall
-sudo ufw status
+Verify all services are running: sudo systemctl status mysql rabbitmq-server memcached elasticsearch tomcat9
 
-Test port
-sudo netstat -tulpn | grep 8080
+Run verification script: ~/scripts/verify-vprofile.sh
 
-text
+Search error messages online
 
----
+Check GitHub Issues in the repository
 
-## Verification Checklist
+📝 Document Change Log
+Date	Version	Changes
+2025-11-09	1.0	Initial release with comprehensive guide
+Happy Deploying! 🚀
 
-### Prerequisites Verification
-
-- [ ] Java 11 installed: `java -version`
-- [ ] Maven installed: `mvn --version`
-- [ ] JAVA_HOME set: `echo $JAVA_HOME`
-- [ ] MySQL running: `sudo systemctl status mysql`
-- [ ] Tomcat running: `sudo systemctl status tomcat9`
-- [ ] RabbitMQ running: `sudo systemctl status rabbitmq-server`
-- [ ] Memcached running: `sudo systemctl status memcached`
-- [ ] ElasticSearch running: `sudo systemctl status elasticsearch`
-
-### Database Verification
-
-- [ ] MySQL password works: `mysql -u root -p -e "SHOW DATABASES;"`
-- [ ] Database exists: `mysql -u root -p -e "USE accounts; SHOW TABLES;"`
-- [ ] Tables created: user, role, user_role
-
-### Application Verification
-
-- [ ] Repository cloned: `ls ~/java-app/JavaProject/`
-- [ ] Build successful: `ls ~/java-app/JavaProject/target/vprofile-v2.war`
-- [ ] Configuration updated: `grep Admin@54321 ~/java-app/JavaProject/src/main/resources/application.properties`
-- [ ] WAR deployed: `ls /opt/tomcat9/webapps/ROOT/`
-
-### Network Verification
-
-- [ ] Tomcat port listening: `sudo netstat -tulpn | grep 8080`
-- [ ] Application responds: `curl http://localhost:8080/`
-- [ ] All endpoints work: login, registration, main page
-- [ ] Accessible from host: `http://VM_IP:8080/`
-
-### Final System Status
-
-Run comprehensive check
-echo "=== Services ==="
-sudo systemctl is-active mysql rabbitmq-server memcached elasticsearch tomcat9
-
-echo "=== Ports ==="
-sudo netstat -tulpn | grep -E ':3306|:8080|:5672|:11211|:9200'
-
-echo "=== Database ==="
-mysql -u root -p -e "SHOW DATABASES;" 2>/dev/null | grep accounts
-
-echo "=== Application ==="
-curl -s -I http://localhost:8080/ | head -1
-
-echo "=== Done ==="
-
-text
-
----
-
-## Next Steps
-
-After successful deployment:
-
-1. **Customize Application**
-   - Modify application features
-   - Add custom business logic
-   - Integrate with external services
-
-2. **Production Deployment**
-   - Set up SSL/HTTPS
-   - Configure load balancing
-   - Implement monitoring
-
-3. **CI/CD Pipeline**
-   - Set up Git workflows
-   - Automate testing
-   - Deploy to cloud (AWS, Azure, GCP)
-
-4. **Monitoring & Logging**
-   - Add centralized logging (ELK Stack)
-   - Set up performance monitoring
-   - Create alerts and dashboards
-
----
-
-## Support & Resources
-
-- **Official VProfile Repository:** https://github.com/seunayolu/JavaProject
-- **Spring Framework:** https://spring.io
-- **MySQL Documentation:** https://dev.mysql.com/doc/
-- **Tomcat Documentation:** https://tomcat.apache.org/tomcat-9.0-doc/
-- **RabbitMQ Guide:** https://www.rabbitmq.com/documentation.html
-
----
-
-## Revision History
-
-| Date | Version | Changes |
-|------|---------|---------|
-| Nov 2025 | 1.0 | Initial documentation for Ubuntu 24.04 |
-
----
-
-## License
-
-This documentation is provided as-is for educational and deployment purposes.
-
----
-
-**Last Updated:** November 4, 2025  
-**Status:** Ready for Production ✓
-
----
-
-**Questions?** Refer to the Troubleshooting section or check the service logs.
-
-✅ Ready to Copy!
-This README.md is:
-
-✓ Complete and comprehensive
-
-✓ Beginner-friendly with clear steps
-
-✓ Professional formatting
-
-✓ Includes all stages (MySQL, App, Tomcat, Network)
-
-✓ Full troubleshooting section
-
-✓ Complete verification checklist
-
-✓ Ready for GitHub/Documentation
-
+⬆️ Back to Top
