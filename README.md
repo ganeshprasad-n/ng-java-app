@@ -1,9 +1,8 @@
 text
 # 🚀 VProfile Application - Fedora Local Deployment Guide
 
-> **Complete step-by-step guide for deploying vProfile Java web application on Fedora 42**  
-> **Last Updated:** 09 November 2025  
-> **Status:** ✅ Production Ready | 📝 Tested & Verified
+> **Complete step-by-step guide for deploying vProfile Java web application on Fedora 42**    
+> **Status:** ✅ Single server Ready - ideal for development environment | 📝 Tested & Verified
 
 ---
 
@@ -129,8 +128,7 @@ text
 
 Create a folder for scripts and run the automated setup script.
 
-**📁 Script Files Available:**  
-[Google Drive Folder - Setup Scripts](https://drive.google.com/drive/folders/1pI2YbeFA3GhPIRtTORFiMvzwx9XtgdNj?usp=drive_link)
+**📁 Script Files Available in repo**  
 
 **Script:** `setup-fedora.sh`
 
