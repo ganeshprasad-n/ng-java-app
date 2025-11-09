@@ -37,12 +37,6 @@ text
 
 This document describes a **step-by-step, copy-paste-ready guide** to prepare a Fedora environment, build the Java web application (vProfile), configure required services, and deploy to Tomcat.
 
-### 📌 Important Note
-
-No existing information has been changed — the content has only been reorganized, enhanced for clarity, and arranged for easier use.
-
----
-
 ## 🙏 Acknowledgments
 
 **[⬆️ Back to Top](#-table-of-contents)**
