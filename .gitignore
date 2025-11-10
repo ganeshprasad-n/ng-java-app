@@ -94,3 +94,5 @@ scripts/*.bak
 # Exceptions - files we DO want to track
 !.gitkeep
 !README.md.bak
+# Exclude actual config with secrets
+src/main/resources/application.properties

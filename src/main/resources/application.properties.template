@@ -1,0 +1,23 @@
+#JDBC Configuration
+jdbc.driverClassName=com.mysql.jdbc.Driver
+jdbc.url=${db.url}
+jdbc.username=${db.username}
+jdbc.password=${db.password}
+
+#Memcached Configuration
+memcached.active.host=${memcached.host}
+memcached.active.port=${memcached.port}
+memcached.standBy.host=${memcached.standby.host}
+memcached.standBy.port=${memcached.standby.port}
+
+#RabbitMQ Configuration
+rabbitmq.address=${rabbitmq.host}
+rabbitmq.port=${rabbitmq.port}
+rabbitmq.username=${rabbitmq.username}
+rabbitmq.password=${rabbitmq.password}
+
+#Elasticsearch Configuration
+elasticsearch.host=${elasticsearch.host}
+elasticsearch.port=${elasticsearch.port}
+elasticsearch.cluster=${elasticsearch.cluster}
+elasticsearch.node=${elasticsearch.node}
