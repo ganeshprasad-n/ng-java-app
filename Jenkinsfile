@@ -115,7 +115,7 @@ pipeline {
             steps {
                 echo "🔐 Checking out ${params.ENVIRONMENT} configuration..."
                 checkout([$class: 'GitSCM',
-                    branches: [[name: '*/main']],
+                    branches: [[name: '*/jenkins-local']],
                     extensions: [[$class: 'RelativeTargetDirectory',
                         relativeTargetDir: 'config']],
                     userRemoteConfigs: [[
