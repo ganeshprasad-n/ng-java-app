@@ -149,10 +149,10 @@ pipeline {
                         cp config/environments/${params.ENVIRONMENT}/application.properties \
                            app/src/main/resources/application.properties
                         
-                        # Verify injection
+                        # Verify injection WITHOUT exposing secrets
                         echo "✅ Configuration injected successfully"
-                        echo "First 5 lines of configuration:"
-                        head -5 app/src/main/resources/application.properties
+                        echo "Config file contains \$(grep -c '=' app/src/main/resources/application.properties) properties"
+                        echo "Database configured: \$(grep -q 'jdbc.url' app/src/main/resources/application.properties && echo 'Yes' || echo 'No')"
                     """
                 }
             }
