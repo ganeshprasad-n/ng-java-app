@@ -1,1294 +1,1675 @@
+🏗️ Production-Grade CI/CD Pipeline Documentation
+Project: VProfile Java Web Application - Automated Build & Deployment
 
-# 🚀 VProfile Application - Fedora Local Deployment Guide
+📋 Table of Contents
+Architecture Overview
+Jenkins Server Setup
+Code Repository Architecture
+Pipeline Implementation
+Issues & Resolutions
+Production Best Practices
+Interview Talking Points
 
-> **Complete step-by-step guide for deploying vProfile Java web application on Fedora 42**    
-> **Status:** ✅ Single server Ready - ideal for development environment | 📝 Tested & Verified
+1. Architecture Overview
+🎯 High-Level Architecture
+text
+┌─────────────────────────────────────────────────────────────┐
+│                    CI/CD Architecture                        │
+└─────────────────────────────────────────────────────────────┘
 
----
+┌────────────────┐         ┌────────────────┐         ┌────────────────┐
+│   Developer    │         │     GitHub     │         │    Jenkins     │
+│   Workstation  │────────▶│   (2 Repos)    │────────▶│     Server     │
+│ 10.115.108.112 │   push  │  - App Code    │ webhook │ 10.115.108.160 │
+└────────────────┘         │  - Config      │         └────────┬───────┘
+                           └────────────────┘                  │
+                                                                │ SSH Deploy
+                                                                ▼
+                           ┌────────────────────────────────────┐
+                           │         App Server                 │
+                           │       10.115.108.191               │
+                           ├────────────────────────────────────┤
+                           │  • Tomcat 9 (App)                  │
+                           │  • MySQL 8.0 (Database)            │
+                           │  • Memcached (Cache)               │
+                           │  • RabbitMQ (Message Queue)        │
+                           │  • Elasticsearch (Search)          │
+                           └────────────────────────────────────┘
 
-## 📋 Table of Contents
-
-- [🎯 Overview](#-overview)
-- [🙏 Acknowledgments](#-acknowledgments)
-- [🏗️ Architecture](#️-architecture)
-- [📋 Prerequisites](#-prerequisites)
-- [🎯 Phase 1: Fedora Environment Setup](#-phase-1-fedora-environment-setup)
-  - [Step 1: Run Setup Script](#step-1-run-setup-script)
-  - [What Gets Installed](#what-gets-installed)
-  - [Verification](#verification)
-- [🎯 Phase 2: Application Setup & Deployment](#-phase-2-application-setup--deployment)
-  - [📥 Stage 1: Clone Repository](#-stage-1-clone-repository)
-  - [🗄️ Stage 2: Database Setup](#️-stage-2-database-setup)
-  - [⚙️ Stage 3: Application Configuration](#️-stage-3-application-configuration)
-  - [🔨 Stage 4: Build Application](#-stage-4-build-application)
-  - [🚀 Stage 5: Deploy to Tomcat](#-stage-5-deploy-to-tomcat)
-  - [🌐 Stage 6: Testing & Verification](#-stage-6-testing--verification)
-  - [🔧 Stage 7: Troubleshooting](#-stage-7-troubleshooting)
-- [📋 Final Verification Script](#-final-verification-script)
-- [🎓 What You've Learned](#-what-youve-learned)
-- [🏢 Real-World Deployment Strategies](#-real-world-deployment-strategies)
-- [📝 Final Notes & Next Steps](#-final-notes--next-steps)
-
----
-
-## 🎯 Overview
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-This document describes a **step-by-step, copy-paste-ready guide** to prepare a Fedora environment, build the Java web application (vProfile), configure required services, and deploy to Tomcat.
-
-## 🙏 Acknowledgments
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-**Original Repository:**  
-[https://github.com/seunayolu/JavaProject.git](https://github.com/seunayolu/JavaProject.git)  
-*Thanks to Seunayolu for the source code!*
-
-**Modified Repository (Use This):**  
-[https://github.com/ganeshprasad-n/ng-java-app.git](https://github.com/ganeshprasad-n/ng-java-app.git)  
-**Branch:** `fedora-local`
-
----
-
-## 🏗️ Architecture
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-┌─────────────────────────────────────────────────────┐
-│ USER BROWSER (Windows/Mac Host) │
-│ Accesses: http://VM-IP:8080/ │
-└────────────────────┬────────────────────────────────┘
+📊 Repository Architecture
+text
+GitHub Organization: ganeshprasad-n
+├── ng-java-app (Application Code)
+│   ├── Branch: main (original code)
+│   └── Branch: jenkins (CI/CD enabled)
+│       ├── Jenkinsfile (pipeline definition)
+│       ├── src/ (Java source code)
+│       ├── pom.xml (Maven build config)
+│       └── application.properties (PLACEHOLDER - injected during build)
 │
-↓
-┌─────────────────────────────────────────────────────┐
-│ TOMCAT 9 (Port 8080) │
-│ ├─ vprofile-v2.war (ROOT context) │
-│ └─ Spring Boot Application │
-└────────┬───────────────────┬────────────────────────┘
-│ │
-↓ ↓
-┌─────────────┐ ┌─────────────────┐
-│ MySQL │ │ ElasticSearch │
-│ (Port 3306)│ │ (Port 9300) │
-└─────────────┘ └─────────────────┘
-│
-├─ RabbitMQ (Port 5672)
-├─ Memcached (Port 11211)
-└─ Backend Services
+└── ng-java-app-config (Configuration Repository)
+    ├── Branch: main (environment configs)
+    └── environments/
+        ├── dev/application.properties
+        ├── staging/application.properties
+        └── production/application.properties
+
+🔄 CI/CD Flow
+text
+1. Developer Push
+   ├── Code: ng-java-app (jenkins branch)
+   └── Config: ng-java-app-config (main branch)
+         ↓
+2. Jenkins Pipeline Trigger
+   ├── Checkout app code (jenkins branch)
+   ├── Checkout config (main branch)
+   └── Inject environment-specific config
+         ↓
+3. Build & Test
+   ├── Maven clean install
+   ├── Unit tests (skipped in this implementation)
+   └── Package WAR file
+         ↓
+4. Deploy
+   ├── SSH to app server
+   ├── Stop Tomcat
+   ├── Deploy WAR
+   └── Start Tomcat
+         ↓
+5. Verification
+   └── Application available at http://10.115.108.191:8080
 
 
-### Tech Stack
+2. Jenkins Server Setup
+🖥️ System Requirements
+text
+Operating System: Fedora Server 42
+CPU: 2 vCPU
+RAM: 4 GB (minimum)
+Disk: 20 GB
+Network: Static IP (10.115.108.160)
+Firewall: Ports 8080 (Jenkins UI), 22 (SSH)
 
-| Component | Technology | Version | Purpose |
-|-----------|-----------|---------|---------|
-| **Backend** | Spring Boot | 4.2.0 | Application framework |
-| **Frontend** | JSP/HTML/CSS/JS | - | User interface |
-| **Database** | MySQL | 8.x | Data persistence |
-| **Cache** | Memcached | Latest | Session caching |
-| **Message Queue** | RabbitMQ | Latest | Async operations |
-| **Search** | ElasticSearch | 7.x | Search functionality |
-| **Server** | Apache Tomcat | 9.0.85 | Servlet container |
-| **Build Tool** | Maven | 3.x | Dependency management |
-| **Java** | Adoptium Temurin JDK | 11 | Runtime environment |
+📦 Prerequisites Installation
+Step 1: Java Installation (Manual)
+bash
+# Update system
+sudo dnf update -y
 
----
+# Install Java 17 (LTS version for Jenkins)
+sudo dnf install -y java-17-openjdk java-17-openjdk-devel
 
-## 📋 Prerequisites
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-### System Requirements
-
-- **OS:** Fedora 42 (tested) or compatible Linux
-- **RAM:** Minimum 4GB (8GB recommended)
-- **Disk Space:** 10GB free space
-- **Network:** Internet connection for downloads
-
-### Required Knowledge
-
-- Basic Linux command line
-- Understanding of terminal/bash
-- Familiarity with text editors (nano/vim)
-
----
-
-## 🎯 Phase 1: Fedora Environment Setup
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-### Step 1: Run Setup Script
-
-Create a folder for scripts and run the automated setup script.
-
-**📁 Script Files Available in repo**  
-
-**Script:** `setup-fedora.sh`
-
-Create scripts directory
-mkdir -p ~/scripts
-cd ~/scripts
-
-Create the script file
-nano setup-fedora.sh
-
-Copy the content from setup-fedora.sh file in the repo
-Make executable
-chmod +x setup-fedora.sh
-
-Run the script
-./setup-fedora.sh
-
-
-### What Gets Installed
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-| Component | Description | Service Port |
-|-----------|-------------|--------------|
-| **Adoptium Temurin JDK 11** | Java runtime (required for Spring 4.2.0) | - |
-| **Apache Maven** | Build automation tool | - |
-| **MySQL Server** | Relational database | 3306 |
-| **RabbitMQ** | Message broker | 5672 |
-| **Memcached** | Caching service | 11211 |
-| **ElasticSearch** | Search engine | 9200, 9300 |
-| **Apache Tomcat 9** | Servlet container | 8080 |
-| **AWS CLI v2** | AWS command line (optional) | - |
-| **Development Tools** | git, vim, curl, wget, etc. | - |
-
-### Verification
-
-After script completes, verify all services are running:
-
-Check service status
-sudo systemctl status mysqld rabbitmq-server memcached elasticsearch tomcat9
-
-Check Java version
+# Verify installation
 java -version
+# Output: openjdk version "17.0.x"
 
-Should show: openjdk version "11.0.x" ... Temurin
-Check Maven
+# Set JAVA_HOME
+echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk' | sudo tee -a /etc/profile.d/java.sh
+source /etc/profile.d/java.sh
+
+# Verify JAVA_HOME
+echo $JAVA_HOME
+
+Step 2: Maven Installation (Manual)
+bash
+# Download Maven 3.8.9
+cd /opt
+sudo wget https://archive.apache.org/dist/maven/maven-3/3.8.9/binaries/apache-maven-3.8.9-bin.tar.gz
+
+# Extract
+sudo tar -xzf apache-maven-3.8.9-bin.tar.gz
+sudo mv apache-maven-3.8.9 maven
+
+# Set up environment variables
+cat <<EOF | sudo tee /etc/profile.d/maven.sh
+export M2_HOME=/opt/maven
+export PATH=\${M2_HOME}/bin:\${PATH}
+EOF
+
+source /etc/profile.d/maven.sh
+
+# Verify
 mvn -version
-
-
-**Expected Output:**
-All services should show: Active: active (running)
-Java 11 from Adoptium Temurin
-Maven 3.x
-
-
----
-
-## 🎯 Phase 2: Application Setup & Deployment
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
----
-
-## 📥 Stage 1: Clone Repository
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-### What We're Doing
-
-Grabbing the application source code and reviewing the project structure.
-
-### Commands
-
-Create workspace
-mkdir -p ~/vprofile-project
-cd ~/vprofile-project
-
-Clone the repository (fedora-local branch only)
-git clone --branch fedora-local --single-branch https://github.com/ganeshprasad-n/ng-java-app.git
-
-Navigate to project
-cd ng-java-app
-
-Explore project structure
-ls -la
-tree . # If tree is installed
-
-
-### ✅ Checkpoint 1: Verify Repository Structure
-
-Ensure these directories and files exist:
-
-- ✅ `src/main/java/` - Java source code
-- ✅ `src/main/resources/` - Configuration files
-- ✅ `src/main/webapp/` - JSP, CSS, JS files
-- ✅ `pom.xml` - Maven build configuration
-- ✅ `src/main/resources/db_backup.sql` - Database schema
-
-### 📖 Why This Structure?
-
-| Aspect | Explanation |
-|--------|-------------|
-| **Maven Standard Directory Layout** | Industry standard for Java projects |
-| **Separation of Concerns** | Code, configs, and web resources in separate folders |
-| **pom.xml** | Defines dependencies and build process |
-| **db_backup.sql** | Contains database schema and initial data |
-
-### ⚠️ Possible Issues & Solutions
-
-If Git not found
-sudo dnf install git -y
-
-If Repository not found
-→ Check URL and internet connection
-If Permission denied
-→ Ensure correct git URL (public repo)
-
-
----
-
-## 🗄️ Stage 2: Database Setup
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-### What We're Doing
-
-Creating the MySQL database and importing the schema that the application needs.
-
-### ⚠️ Important: MySQL Authentication on Fedora
-
-MySQL on Fedora/RHEL uses different default authentication than Ubuntu. We'll configure password-based authentication.
-
-### Step-by-Step Setup
-
-#### 1. Run MySQL Secure Installation
-
-sudo mysql_secure_installation
-
-
-
-**When prompted, answer:**
-Set root password: y
-New password: Admin@54321
-Re-enter password: Admin@54321
-Remove anonymous users: y
-Disallow root login remotely: y
-Remove test database: y
-Reload privilege tables: y
-
-
-
-#### 2. Login to MySQL
-
-sudo mysql -u root -p
-
-Enter password: Admin@54321 (example)
-
-#### 3. Create Application Database
-
-CREATE DATABASE accounts;
-SHOW DATABASES;
-USE accounts;
-EXIT;
-
-
-
-**Expected Output:**
-+--------------------+
-| Database |
-+--------------------+
-| accounts |
-| information_schema |
-| mysql |
-| performance_schema |
-+--------------------+
-
-
-
-### 👤 MySQL User Management
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-#### Create Dedicated Application User
-
-Login as root
-sudo mysql -u root -p
-
-Enter password: Admin@54321
-
-undefined
--- Create dedicated user for vprofile app
-CREATE USER 'vprofile_app'@'localhost' IDENTIFIED BY 'vprofile@54321';
-
--- Grant privileges only to accounts database
-GRANT ALL PRIVILEGES ON accounts.* TO 'vprofile_app'@'localhost';
-
--- For remote access (if needed)
-CREATE USER 'vprofile'@'%' IDENTIFIED BY 'vprofile@54321';
-GRANT ALL PRIVILEGES ON accounts.* TO 'vprofile'@'%';
-
--- Apply privilege changes
-FLUSH PRIVILEGES;
-
--- Verify user creation
-SELECT user, host FROM mysql.user;
-
-EXIT;
-
-
-
-#### Test the New User
-
-mysql -u vprofile_app -p -e "SHOW DATABASES;"
-
-Enter password: vprofile@54321
-Should see: information_schema, accounts, performance_schema
-
-
-### Import Database Schema
-
-Navigate to project
-cd ~/vprofile-project/ng-java-app
-
-Import schema using root
-mysql -u root -p accounts < src/main/resources/db_backup.sql
-
-Enter password: Admin@54321
-OR using application user
-mysql -u vprofile_app -p accounts < src/main/resources/db_backup.sql
-
-Enter password: vprofile@54321
-Verify tables
-mysql -u root -p -e "USE accounts; SHOW TABLES;"
-
-
-
-**Expected Output:**
-+--------------------+
-| Tables_in_accounts |
-+--------------------+
-| role |
-| user |
-| user_role |
-+--------------------+
-
-
-
-### ✅ Checkpoint 2: Verify Database Setup
-
-Test database connection
-mysql -u vprofile_app -pvprofile@54321 -e "USE accounts; SELECT COUNT(*) FROM user;"
-
-
-
-- ✅ Database `accounts` created
-- ✅ Tables imported: user, role, user_role
-- ✅ Can connect with application user
-
-### 📖 Why This Step?
-
-| Aspect | Explanation |
-|--------|-------------|
-| **Data Persistence** | MySQL stores user accounts and application data |
-| **User Management** | user_role table manages permissions |
-| **Dedicated Database** | Industry standard - one database per application |
-| **Dedicated User** | Principle of least privilege - app user has only necessary permissions |
-
-### ⚠️ Common Issues
-
-If MySQL password issues
-sudo mysql -u root
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'newpassword';
-
-If file not found
-ls -la src/main/resources/db_backup.sql
-
-If permission denied
-sudo chmod +r src/main/resources/db_backup.sql
-
-If tables not importing (verbose mode)
-mysql -u root -p accounts < src/main/resources/db_backup.sql --verbose
-
-
-
----
-
-## ⚙️ Stage 3: Application Configuration
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-### What We're Doing
-
-Configuring `application.properties` to connect to MySQL, RabbitMQ, Memcached, and Elasticsearch.
-
-### Navigate to Project
-
-cd ~/vprofile-project/ng-java-app
-
-
-
-### Create/Update application.properties
-
-nano src/main/resources/application.properties
-
-
-
-**Paste this configuration:**
-
-#JDBC Configuration for Database Connection
-jdbc.driverClassName=com.mysql.jdbc.Driver
-jdbc.url=jdbc:mysql://localhost:3306/accounts?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+# Output: Apache Maven 3.8.9
+
+Step 3: Git Installation
+bash
+sudo dnf install -y git
+git --version
+
+🚀 Automated Installation Script
+Create: jenkins-setup.sh
+bash
+#!/bin/bash
+
+##############################################################################
+# Jenkins CI/CD Server Setup Script
+# Description: Automated installation of Jenkins, Java, Maven, and Git
+# Author: DevOps Team
+# Date: 2025-11-11
+##############################################################################
+
+set -e  # Exit on error
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Functions
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+check_root() {
+    if [[ $EUID -ne 0 ]]; then
+        log_error "This script must be run as root"
+        exit 1
+    fi
+}
+
+##############################################################################
+# Step 1: System Update
+##############################################################################
+update_system() {
+    log_info "Updating system packages..."
+    dnf update -y
+    log_success "System updated successfully"
+}
+
+##############################################################################
+# Step 2: Install Java 17
+##############################################################################
+install_java() {
+    log_info "Installing Java 17..."
+    dnf install -y java-17-openjdk java-17-openjdk-devel
+    
+    # Set JAVA_HOME
+    echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk' > /etc/profile.d/java.sh
+    source /etc/profile.d/java.sh
+    
+    java -version
+    log_success "Java 17 installed successfully"
+}
+
+##############################################################################
+# Step 3: Install Maven 3.8.9
+##############################################################################
+install_maven() {
+    log_info "Installing Maven 3.8.9..."
+    cd /opt
+    wget -q https://archive.apache.org/dist/maven/maven-3/3.8.9/binaries/apache-maven-3.8.9-bin.tar.gz
+    tar -xzf apache-maven-3.8.9-bin.tar.gz
+    mv apache-maven-3.8.9 maven
+    rm -f apache-maven-3.8.9-bin.tar.gz
+    
+    # Set Maven environment
+    cat <<'EOF' > /etc/profile.d/maven.sh
+export M2_HOME=/opt/maven
+export PATH=${M2_HOME}/bin:${PATH}
+EOF
+    
+    source /etc/profile.d/maven.sh
+    mvn -version
+    log_success "Maven installed successfully"
+}
+
+##############################################################################
+# Step 4: Install Git
+##############################################################################
+install_git() {
+    log_info "Installing Git..."
+    dnf install -y git
+    git --version
+    log_success "Git installed successfully"
+}
+
+##############################################################################
+# Step 5: Install Jenkins
+##############################################################################
+install_jenkins() {
+    log_info "Installing Jenkins..."
+    
+    # Add Jenkins repository
+    wget -O /etc/yum.repos.d/jenkins.repo \
+        https://pkg.jenkins.io/redhat-stable/jenkins.repo
+    
+    rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+    
+    # Install Jenkins
+    dnf install -y jenkins
+    
+    # Start and enable Jenkins
+    systemctl daemon-reload
+    systemctl start jenkins
+    systemctl enable jenkins
+    
+    log_success "Jenkins installed and started"
+}
+
+##############################################################################
+# Step 6: Configure Firewall
+##############################################################################
+configure_firewall() {
+    log_info "Configuring firewall..."
+    
+    # Check if firewalld is running
+    if systemctl is-active --quiet firewalld; then
+        firewall-cmd --permanent --add-port=8080/tcp
+        firewall-cmd --reload
+        log_success "Firewall configured (port 8080 opened)"
+    else
+        log_warn "Firewalld not running, skipping firewall configuration"
+    fi
+}
+
+##############################################################################
+# Step 7: Display Initial Admin Password
+##############################################################################
+display_admin_password() {
+    log_info "Waiting for Jenkins to fully start (30 seconds)..."
+    sleep 30
+    
+    if [ -f /var/lib/jenkins/secrets/initialAdminPassword ]; then
+        INITIAL_PASSWORD=$(cat /var/lib/jenkins/secrets/initialAdminPassword)
+        echo ""
+        echo "╔════════════════════════════════════════════════════════════╗"
+        echo "║           Jenkins Installation Complete!                   ║"
+        echo "╚════════════════════════════════════════════════════════════╝"
+        echo ""
+        echo "  🌐 Jenkins URL: http://$(hostname -I | awk '{print $1}'):8080"
+        echo ""
+        echo "  🔐 Initial Admin Password:"
+        echo "     ${INITIAL_PASSWORD}"
+        echo ""
+        echo "  📝 Next Steps:"
+        echo "     1. Open Jenkins URL in browser"
+        echo "     2. Enter the admin password above"
+        echo "     3. Install suggested plugins"
+        echo "     4. Create admin user"
+        echo ""
+        log_success "Setup complete!"
+    else
+        log_error "Could not find initial admin password"
+    fi
+}
+
+##############################################################################
+# Main Execution
+##############################################################################
+main() {
+    echo "╔════════════════════════════════════════════════════════════╗"
+    echo "║        Jenkins CI/CD Server Setup Script                   ║"
+    echo "║        Fedora Server 42                                     ║"
+    echo "╚════════════════════════════════════════════════════════════╝"
+    echo ""
+    
+    check_root
+    update_system
+    install_java
+    install_maven
+    install_git
+    install_jenkins
+    configure_firewall
+    display_admin_password
+}
+
+main "$@"
+
+Usage:
+bash
+# Download and run
+chmod +x jenkins-setup.sh
+sudo ./jenkins-setup.sh
+
+✅ Checkpoint: Jenkins Installation
+Verification Steps:
+bash
+# 1. Check Java
+java -version
+# Expected: openjdk version "17.0.x"
+
+# 2. Check Maven
+mvn -version
+# Expected: Apache Maven 3.8.9
+
+# 3. Check Git
+git --version
+# Expected: git version 2.x.x
+
+# 4. Check Jenkins service
+sudo systemctl status jenkins
+# Expected: active (running)
+
+# 5. Access Jenkins UI
+# URL: http://10.115.108.160:8080
+# Expected: Jenkins unlock page
+
+Possible Issues:
+Issue
+Cause
+Solution
+Jenkins won't start
+Port 8080 in use
+sudo lsof -i :8080 then kill process or change Jenkins port
+Can't access UI
+Firewall blocking
+sudo firewall-cmd --add-port=8080/tcp --permanent && sudo firewall-cmd --reload
+Java version mismatch
+Wrong Java version
+Ensure Java 17 is installed and set as default
+Maven not found
+PATH not set
+Source /etc/profile.d/maven.sh
+
+
+🔌 Jenkins Plugin Installation
+Required Plugins:
+Git Plugin (for Git integration)
+SSH Agent Plugin (for SSH-based deployment)
+Pipeline Plugin (for Jenkinsfile support)
+Credentials Plugin (for secret management)
+Maven Integration Plugin (for Maven builds)
+Installation Steps:
+text
+1. Go to: Jenkins Dashboard → Manage Jenkins → Plugins
+2. Click: Available plugins
+3. Search and install:
+   ✅ Git Plugin
+   ✅ SSH Agent Plugin
+   ✅ Pipeline Plugin
+   ✅ Credentials Plugin
+   ✅ Maven Integration Plugin
+4. Click: Install without restart
+5. Wait for installation to complete
+6. Restart Jenkins: sudo systemctl restart jenkins
+
+✅ Checkpoint: Plugins Installed
+bash
+# Verify plugins via CLI
+curl -s http://localhost:8080/pluginManager/api/json?depth=1 | \
+  jq -r '.plugins[] | select(.shortName=="git" or .shortName=="ssh-agent" or .shortName=="workflow-aggregator" or .shortName=="credentials" or .shortName=="maven-plugin") | .shortName + ": " + .version'
+
+# Expected output:
+# git: x.x.x
+# ssh-agent: x.x.x
+# workflow-aggregator: x.x.x
+# credentials: x.x.x
+# maven-plugin: x.x.x
+
+
+🔑 SSH Key Generation & Configuration
+Step 1: Generate SSH Keys on Jenkins Server
+bash
+# Switch to jenkins user
+sudo su - jenkins
+
+# Generate SSH key for GitHub
+ssh-keygen -t ed25519 -C "jenkins@github.com" -f ~/.ssh/jenkins-github-key -N ""
+
+# Generate SSH key for App Server
+ssh-keygen -t ed25519 -C "jenkins@app-server" -f ~/.ssh/jenkins-app-server-key -N ""
+
+# Set correct permissions
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/jenkins-github-key ~/.ssh/jenkins-app-server-key
+
+# Display public keys
+echo "=== GitHub Public Key ==="
+cat ~/.ssh/jenkins-github-key.pub
+
+echo ""
+echo "=== App Server Public Key ==="
+cat ~/.ssh/jenkins-app-server-key.pub
+
+Step 2: Add Public Key to GitHub
+text
+1. Copy the GitHub public key from above
+2. Go to: GitHub → Settings → SSH and GPG keys
+3. Click: New SSH key
+4. Title: "Jenkins CI/CD Server"
+5. Paste the public key
+6. Click: Add SSH key
+
+Step 3: Add Public Key to App Server
+bash
+# On App Server (10.115.108.191)
+# Create deploy user (if not exists)
+sudo useradd -m -s /bin/bash deploy
+sudo mkdir -p /home/deploy/.ssh
+sudo chmod 700 /home/deploy/.ssh
+
+# Add Jenkins public key to authorized_keys
+echo "<PASTE_JENKINS_APP_SERVER_PUBLIC_KEY>" | \
+  sudo tee -a /home/deploy/.ssh/authorized_keys
+
+sudo chmod 600 /home/deploy/.ssh/authorized_keys
+sudo chown -R deploy:deploy /home/deploy/.ssh
+
+# Grant sudo permissions for Tomcat control
+echo "deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl start tomcat9, /usr/bin/systemctl stop tomcat9, /usr/bin/systemctl restart tomcat9, /usr/bin/systemctl status tomcat9, /bin/rm, /bin/mv, /bin/chown" | sudo tee /etc/sudoers.d/deploy
+
+sudo chmod 440 /etc/sudoers.d/deploy
+
+Step 4: Configure SSH Config on Jenkins
+bash
+# On Jenkins server, as jenkins user
+cat <<'EOF' > ~/.ssh/config
+# GitHub
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/jenkins-github-key
+    StrictHostKeyChecking no
+
+# App Server
+Host app-server
+    HostName 10.115.108.191
+    User deploy
+    IdentityFile ~/.ssh/jenkins-app-server-key
+    StrictHostKeyChecking no
+EOF
+
+chmod 600 ~/.ssh/config
+
+Step 5: Test SSH Connections
+bash
+# Still as jenkins user
+# Test GitHub
+ssh -T git@github.com
+# Expected: Hi ganeshprasad-n! You've successfully authenticated...
+
+# Test App Server
+ssh app-server 'hostname'
+# Expected: localhost.localdomain (or your app server hostname)
+
+✅ Checkpoint: SSH Keys Configured
+Verification Checklist:
+ GitHub SSH key added to GitHub account
+ Jenkins can authenticate to GitHub: ssh -T git@github.com
+ App server has deploy user created
+ Deploy user has sudo permissions for Tomcat
+ Jenkins can SSH to app server: ssh app-server 'hostname'
+ SSH config file created on Jenkins
+Possible Issues:
+Issue
+Cause
+Solution
+Permission denied (GitHub)
+Public key not added to GitHub
+Add public key in GitHub Settings → SSH Keys
+Permission denied (App Server)
+Public key not in authorized_keys
+Add Jenkins public key to /home/deploy/.ssh/authorized_keys
+Sudo password required
+Sudoers not configured
+Add deploy user to sudoers with NOPASSWD
+Tomcat won't stop/start
+Wrong sudo permissions
+Check /etc/sudoers.d/deploy file
+
+
+🔐 Jenkins Credentials Configuration
+Step 1: Add GitHub SSH Credential
+text
+1. Go to: Jenkins Dashboard → Manage Jenkins → Credentials
+2. Click: (global) domain
+3. Click: Add Credentials
+4. Fill in:
+   - Kind: SSH Username with private key
+   - ID: github-ssh-key
+   - Description: GitHub SSH key for repository access
+   - Username: git
+   - Private Key: Enter directly
+   - Click: Add (then paste contents of ~/.ssh/jenkins-github-key)
+5. Click: OK
+
+Step 2: Add App Server SSH Credential
+text
+1. Go to: Jenkins Dashboard → Manage Jenkins → Credentials
+2. Click: (global) domain
+3. Click: Add Credentials
+4. Fill in:
+   - Kind: SSH Username with private key
+   - ID: app-server-deploy-key
+   - Description: App server deploy user SSH key
+   - Username: deploy
+   - Private Key: Enter directly
+   - Click: Add (then paste contents of ~/.ssh/jenkins-app-server-key)
+5. Click: OK
+
+✅ Checkpoint: Credentials Added
+Verification:
+text
+1. Go to: Jenkins → Manage Jenkins → Credentials
+2. You should see:
+   ✅ github-ssh-key (SSH Username with private key)
+   ✅ app-server-deploy-key (SSH Username with private key)
+
+
+⚙️ Jenkins Global Tool Configuration
+Step 1: Configure JDK
+text
+1. Go to: Manage Jenkins → Tools
+2. Scroll to: JDK installations
+3. Click: Add JDK
+4. Fill in:
+   - Name: JDK-11
+   - Uncheck "Install automatically"
+   - JAVA_HOME: /usr/lib/jvm/java-17-openjdk
+5. Click: Save
+
+Step 2: Configure Maven
+text
+1. Still in: Manage Jenkins → Tools
+2. Scroll to: Maven installations
+3. Click: Add Maven
+4. Fill in:
+   - Name: Maven-3.8.9
+   - Uncheck "Install automatically"
+   - MAVEN_HOME: /opt/maven
+5. Click: Save
+
+Step 3: Configure Git
+text
+1. Still in: Manage Jenkins → Tools
+2. Scroll to: Git installations
+3. Click: Add Git
+4. Fill in:
+   - Name: Default
+   - Path to Git executable: /usr/bin/git
+5. Click: Save
+
+✅ Checkpoint: Tools Configured
+Verification:
+bash
+# Test from Jenkins pipeline (create test pipeline):
+pipeline {
+    agent any
+    tools {
+        jdk 'JDK-11'
+        maven 'Maven-3.8.9'
+    }
+    stages {
+        stage('Test Tools') {
+            steps {
+                sh 'java -version'
+                sh 'mvn -version'
+                sh 'git --version'
+            }
+        }
+    }
+}
+
+
+3. Code Repository Architecture
+🏗️ Design Pattern: Separation of Concerns
+Why Separate Repositories?
+Repository
+Purpose
+Benefits
+ng-java-app
+Application source code
+Version control for code only, developers focus on logic
+ng-java-app-config
+Environment configurations
+Separate config lifecycle, easier secret management
+
+📁 Repository Structure
+Application Repository (ng-java-app)
+text
+ng-java-app/
+├── .git/
+├── .gitignore
+├── README.md
+├── Jenkinsfile                    ← CI/CD pipeline definition
+├── pom.xml                        ← Maven build configuration
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/visualpathit/
+│   │   │       └── account/
+│   │   │           ├── controller/
+│   │   │           ├── model/
+│   │   │           ├── service/
+│   │   │           └── utils/
+│   │   ├── resources/
+│   │   │   └── application.properties  ← PLACEHOLDER (replaced during build)
+│   │   └── webapp/
+│   │       ├── WEB-INF/
+│   │       └── resources/
+│   └── test/
+│       └── java/
+└── target/                        ← Build output (gitignored)
+    └── vprofile-v2.war           ← Deployable artifact
+
+Configuration Repository (ng-java-app-config)
+text
+ng-java-app-config/
+├── .git/
+├── README.md
+└── environments/
+    ├── dev/
+    │   └── application.properties     ← Dev environment config
+    ├── staging/
+    │   └── application.properties     ← Staging environment config
+    └── production/
+        └── application.properties     ← Production environment config
+
+🚀 Repository Creation Steps
+Step 1: Create Repositories on GitHub
+text
+1. Go to: https://github.com/ganeshprasad-n
+2. Click: New repository
+3. Repository 1:
+   - Name: ng-java-app
+   - Description: VProfile Java Web Application
+   - Visibility: Private (recommended) or Public
+   - Initialize: No (we'll push existing code)
+4. Click: Create repository
+
+5. Repeat for Repository 2:
+   - Name: ng-java-app-config
+   - Description: VProfile Configuration Repository
+
+Step 2: Initialize Application Repository
+bash
+# On Workstation
+cd ~/vprofile-project/vprofile-project
+
+# Initialize git (if not already)
+git init
+
+# Create main branch
+git checkout -b main
+
+# Add remote
+git remote add origin git@github.com:ganeshprasad-n/ng-java-app.git
+
+# Add all files
+git add .
+git commit -m "initial commit: VProfile Java application"
+git push -u origin main
+
+# Create jenkins branch for CI/CD
+git checkout -b jenkins
+git push -u origin jenkins
+
+Step 3: Create Configuration Repository
+bash
+# On Workstation
+mkdir -p ~/vprofile-project/ng-java-app-config
+cd ~/vprofile-project/ng-java-app-config
+
+# Initialize git
+git init
+
+# Create directory structure
+mkdir -p environments/{dev,staging,production}
+
+# Create dev configuration
+cat > environments/dev/application.properties << 'EOF'
+# Database Configuration
+jdbc.driverClassName=com.mysql.cj.jdbc.Driver
+jdbc.url=jdbc:mysql://10.115.108.191:3306/accounts?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
 jdbc.username=vprofile_app
 jdbc.password=vprofile@54321
 
-#Memcached Configuration For Active and StandBy Host
-memcached.active.host=localhost
+# Memcached Configuration
+memcached.active.host=10.115.108.191
 memcached.active.port=11211
-memcached.standBy.host=127.0.0.2
+memcached.standBy.host=10.115.108.191
 memcached.standBy.port=11211
 
-#RabbitMq Configuration
-rabbitmq.address=localhost
+# RabbitMQ Configuration
+rabbitmq.address=10.115.108.191
 rabbitmq.port=5672
-rabbitmq.username=guest
-rabbitmq.password=guest
+rabbitmq.username=vprofile_mq
+rabbitmq.password=vprofile@rabbit123
 
-#Elasticesearch Configuration
-elasticsearch.host=localhost
-elasticsearch.port=9300
-elasticsearch.cluster=vprofile
-elasticsearch.node=vprofilenode
-
-
-
-**Alternative: Create using here-doc:**
-
-cat > src/main/resources/application.properties << 'EOF'
-#JDBC Configuration for Database Connection
-jdbc.driverClassName=com.mysql.jdbc.Driver
-jdbc.url=jdbc:mysql://localhost:3306/accounts?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
-jdbc.username=vprofile_app
-jdbc.password=vprofile@54321
-
-#Memcached Configuration For Active and StandBy Host
-memcached.active.host=localhost
-memcached.active.port=11211
-memcached.standBy.host=127.0.0.2
-memcached.standBy.port=11211
-
-#RabbitMq Configuration
-rabbitmq.address=localhost
-rabbitmq.port=5672
-rabbitmq.username=guest
-rabbitmq.password=guest
-
-#Elasticesearch Configuration
-elasticsearch.host=localhost
+# Elasticsearch Configuration
+elasticsearch.host=10.115.108.191
 elasticsearch.port=9300
 elasticsearch.cluster=vprofile
 elasticsearch.node=vprofilenode
 EOF
 
-Verify
-cat src/main/resources/application.properties
+# Create staging config (copy from dev and modify as needed)
+cp environments/dev/application.properties environments/staging/application.properties
+
+# Create production config (copy from dev and modify as needed)
+cp environments/dev/application.properties environments/production/application.properties
+
+# Create README
+cat > README.md << 'EOF'
+# VProfile Configuration Repository
+
+Environment-specific configurations for VProfile application.
+
+## Structure
+- `environments/dev/` - Development environment
+- `environments/staging/` - Staging environment  
+- `environments/production/` - Production environment
+
+## Usage
+Configurations are injected during CI/CD pipeline execution.
+EOF
+
+# Commit and push
+git add .
+git commit -m "feat: initial configuration repository structure"
+git remote add origin git@github.com:ganeshprasad-n/ng-java-app-config.git
+git branch -M main
+git push -u origin main
+
+✅ Checkpoint: Repositories Created
+Verification:
+bash
+# Check local repositories
+ls -la ~/vprofile-project/
+# Expected:
+# ng-java-app/
+# ng-java-app-config/
+
+# Verify GitHub
+# Go to: https://github.com/ganeshprasad-n
+# Expected:
+# ✅ ng-java-app (with main and jenkins branches)
+# ✅ ng-java-app-config (with main branch)
+
+Possible Issues:
+Issue
+Cause
+Solution
+Permission denied (GitHub)
+SSH key not configured
+Add SSH key to GitHub account
+Remote already exists
+Trying to add existing remote
+Use git remote set-url origin <url>
+Branch not found
+Wrong branch name
+Check branch with git branch -a
+Push rejected
+Remote has newer commits
+git pull --rebase origin main then push
 
 
-### ✅ Checkpoint 3: Verify Configuration
-
-- ✅ application.properties file created
-- ✅ All service connections point to localhost
-- ✅ MySQL credentials match your setup
-- ✅ All ports match running services
-
-### 📖 Why Each Configuration Matters
-
-| Configuration | Purpose | Example |
-|--------------|---------|---------|
-| **JDBC** | Java ↔ MySQL connection | `jdbc.url=jdbc:mysql://localhost:3306/accounts` |
-| **Memcached** | Session caching for performance | `memcached.active.port=11211` |
-| **RabbitMQ** | Async message processing | `rabbitmq.port=5672` |
-| **ElasticSearch** | Search functionality | `elasticsearch.port=9300` |
-
-### 🏢 Industry Best Practices
-
-- ⚠️ Never commit passwords in VCS (only for learning here)
-- ✅ Use environment variables in production
-- ✅ Externalize configs for different environments (dev, staging, prod)
-- ✅ Use secrets management (AWS Secrets Manager, HashiCorp Vault)
-
-### ⚠️ Common Issues
-
-If file creation fails
-vim src/main/resources/application.properties
-
-If permission issue
-sudo chown $USER:$USER src/main/resources/application.properties
-
-If services not running
-sudo systemctl status mysql rabbitmq-server memcached elasticsearch
-
-
-
----
-
-## 🔨 Stage 4: Build Application
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-### What We're Doing
-
-Building with Maven to compile Java code, resolve dependencies, and create a WAR file for Tomcat deployment.
-
-### Maven Lifecycle Recap
-
-Maven executes phases sequentially:
-
-validate → compile → test → package → verify → install → deploy
-
-
-
-### Common Maven Commands
-
-| Command | What It Does | When to Use |
-|---------|--------------|-------------|
-| `mvn clean compile` | Compile only (no package, no tests) | Quick syntax check during development |
-| `mvn clean test` | Compile + run unit tests | Before committing code |
-| `mvn clean package` | Compile + test + create WAR/JAR | Standard build |
-| `mvn clean install` | Full build + install to local repo | **Industry standard** ⭐ |
-
-### Build the Application
-
-Navigate to project root
-cd ~/vprofile-project/ng-java-app
-
-Check we're in the right directory
-pwd
-ls pom.xml # Should exist
-
-Full build (recommended)
-mvn clean install -DskipTests
-
-Alternative: with tests
-mvn clean install
-
-
-### Verify Build Success
-
-Check WAR file was created
-ls -lh target/vprofile-v2.war
-
-Verify file size (should be 30-60MB typically)
-file target/vprofile-v2.war
-
-Should show: Java archive data (JAR)
-List WAR contents
-jar -tf target/vprofile-v2.war | head -20
-
-Should show: META-INF/, WEB-INF/, etc.
+🔄 Configuration Injection Pattern
+How It Works:
 text
+┌─────────────────────────────────────────────────────────┐
+│         Configuration Injection Flow                     │
+└─────────────────────────────────────────────────────────┘
 
-**Expected Output:**
--rw-rw-r-- 1 ngp ngp 50M Nov 9 06:00 target/vprofile-v2.war
-target/vprofile-v2.war: Java archive data (JAR)
+Step 1: Jenkins Pipeline Starts
+   ↓
+Step 2: Checkout Application Code (jenkins branch)
+   ├── Contains: Jenkinsfile, source code
+   └── application.properties: EMPTY or PLACEHOLDER
+   ↓
+Step 3: Checkout Configuration Repository (main branch)
+   └── Contains: environments/{dev,staging,production}
+   ↓
+Step 4: Inject Configuration
+   ├── Read: config/environments/${ENVIRONMENT}/application.properties
+   ├── Write to: app/src/main/resources/application.properties
+   └── Maven build picks up the injected config
+   ↓
+Step 5: Build WAR File
+   └── WAR contains environment-specific configuration
+   ↓
+Step 6: Deploy
+   └── Application starts with correct config
+
+📋 Production Best Practices Followed
+Separation of Concerns
+✅ Code and configuration in separate repositories
+✅ Allows different access controls
+✅ Configuration changes don't trigger code rebuilds
+Branch Strategy
+✅ main: Stable, production-ready code
+✅ jenkins: CI/CD enabled branch
+✅ Feature branches: For development
+Environment Management
+✅ Separate configs for dev/staging/prod
+✅ Secrets NOT committed to code repository
+✅ Configuration injected at build time
+Security
+✅ Credentials stored in Jenkins (not in Jenkinsfile)
+✅ SSH key-based authentication
+✅ Secrets masked in build logs
+
+4. Pipeline Implementation
+📜 Complete Jenkinsfile
+Location: ng-java-app/Jenkinsfile
+groovy
+pipeline {
+    agent any
+    
+    // ═══════════════════════════════════════════════════════════
+    // Build Tools Configuration
+    // ═══════════════════════════════════════════════════════════
+    tools {
+        maven 'Maven-3.8.9'  // Must match Jenkins Global Tool Configuration
+        jdk 'JDK-11'         // Must match Jenkins Global Tool Configuration
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // Pipeline Parameters
+    // ═══════════════════════════════════════════════════════════
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'staging', 'production'],
+            description: 'Select target deployment environment'
+        )
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // Environment Variables
+    // ═══════════════════════════════════════════════════════════
+    environment {
+        // Repository URLs (SSH format)
+        APP_REPO = 'git@github.com:ganeshprasad-n/ng-java-app.git'
+        CONFIG_REPO = 'git@github.com:ganeshprasad-n/ng-java-app-config.git'
+        
+        // Server Configuration
+        APP_SERVER_HOST = 'app-server'  // SSH hostname from ~/.ssh/config
+        APP_SERVER_IP = '10.115.108.191'  // For display purposes only
+        DEPLOY_USER = 'deploy'
+        
+        // Build Metadata
+        BUILD_TIME = sh(script: "date '+%Y-%m-%d %H:%M:%S'", returnStdout: true).trim()
+        PROJECT_NAME = 'VProfile'
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // Pipeline Stages
+    // ═══════════════════════════════════════════════════════════
+    stages {
+        
+        // ───────────────────────────────────────────────────────
+        // Stage 1: Display Build Information
+        // ───────────────────────────────────────────────────────
+        stage('Environment Info') {
+            steps {
+                script {
+                    echo '═══════════════════════════════════════════════════════'
+                    echo "🚀 ${PROJECT_NAME} CI/CD Pipeline"
+                    echo '═══════════════════════════════════════════════════════'
+                    echo "Environment     : ${params.ENVIRONMENT}"
+                    echo "Build Number    : #${BUILD_NUMBER}"
+                    echo "Build Time      : ${BUILD_TIME}"
+                    echo "Branch          : jenkins"
+                    echo "Deploy Target   : ${DEPLOY_USER}@${APP_SERVER_HOST}"
+                    echo "App Server IP   : ${APP_SERVER_IP}"
+                    echo '═══════════════════════════════════════════════════════'
+                }
+            }
+        }
+        
+        // ───────────────────────────────────────────────────────
+        // Stage 2: Verify Build Tools
+        // ───────────────────────────────────────────────────────
+        stage('Verify Tools') {
+            steps {
+                echo '🔍 Verifying build tool versions...'
+                sh '''
+                    echo "══════════════════════════════════"
+                    echo "Java Version:"
+                    java -version
+                    echo ""
+                    echo "══════════════════════════════════"
+                    echo "Maven Version:"
+                    mvn --version
+                    echo ""
+                    echo "══════════════════════════════════"
+                    echo "Git Version:"
+                    git --version
+                    echo "══════════════════════════════════"
+                '''
+            }
+        }
+        
+        // ───────────────────────────────────────────────────────
+        // Stage 3: Checkout Application Code
+        // ───────────────────────────────────────────────────────
+        stage('Checkout Application') {
+            steps {
+                echo '📥 Checking out application code from jenkins branch...'
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/jenkins']],
+                    extensions: [[$class: 'RelativeTargetDirectory',
+                        relativeTargetDir: 'app']],
+                    userRemoteConfigs: [[
+                        url: env.APP_REPO,
+                        credentialsId: 'github-ssh-key'
+                    ]]
+                ])
+                sh '''
+                    echo "✅ Application code checked out"
+                    ls -la app/ | head -10
+                '''
+            }
+        }
+        
+        // ───────────────────────────────────────────────────────
+        // Stage 4: Checkout Configuration Repository
+        // ───────────────────────────────────────────────────────
+        stage('Checkout Configuration') {
+            steps {
+                echo "🔐 Checking out ${params.ENVIRONMENT} configuration..."
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    extensions: [[$class: 'RelativeTargetDirectory',
+                        relativeTargetDir: 'config']],
+                    userRemoteConfigs: [[
+                        url: env.CONFIG_REPO,
+                        credentialsId: 'github-ssh-key'
+                    ]]
+                ])
+                sh '''
+                    echo "✅ Configuration repository checked out"
+                    echo "Available environments:"
+                    ls -la config/environments/
+                '''
+            }
+        }
+        
+        // ───────────────────────────────────────────────────────
+        // Stage 5: Inject Environment Configuration
+        // ───────────────────────────────────────────────────────
+        stage('Inject Configuration') {
+            steps {
+                script {
+                    echo "📋 Injecting ${params.ENVIRONMENT} configuration..."
+                    sh """
+                        # Verify config file exists
+                        if [ ! -f config/environments/${params.ENVIRONMENT}/application.properties ]; then
+                            echo "❌ Error: Configuration file not found!"
+                            exit 1
+                        fi
+                        
+                        # Copy environment-specific config
+                        cp config/environments/${params.ENVIRONMENT}/application.properties \
+                           app/src/main/resources/application.properties
+                        
+                        # Verify injection WITHOUT exposing secrets
+                        echo "✅ Configuration injected successfully"
+                        echo "Config file contains \$(grep -c '=' app/src/main/resources/application.properties) properties"
+                        echo "Database configured: \$(grep -q 'jdbc.url' app/src/main/resources/application.properties && echo 'Yes' || echo 'No')"
+                    """
+                }
+            }
+        }
+        
+        // ───────────────────────────────────────────────────────
+        // Stage 6: Build WAR File
+        // ───────────────────────────────────────────────────────
+        stage('Build Application') {
+            steps {
+                dir('app') {
+                    echo '🔨 Building WAR file with Maven...'
+                    sh '''
+                        # Clean and build
+                        mvn clean install -DskipTests
+                        
+                        # Verify WAR file
+                        echo ""
+                        echo "✅ Build completed successfully"
+                        echo "════════════════════════════════════════"
+                        echo "Build Artifacts:"
+                        ls -lh target/*.war
+                        echo ""
+                        echo "WAR File Details:"
+                        file target/*.war
+                        echo "════════════════════════════════════════"
+                    '''
+                }
+            }
+        }
+        
+        // ───────────────────────────────────────────────────────
+        // Stage 7: Archive Build Artifacts
+        // ───────────────────────────────────────────────────────
+        stage('Archive Artifacts') {
+            steps {
+                dir('app') {
+                    echo '📦 Archiving build artifacts...'
+                    archiveArtifacts artifacts: 'target/*.war', 
+                                     fingerprint: true,
+                                     allowEmptyArchive: false
+                    echo '✅ Artifacts archived in Jenkins'
+                }
+            }
+        }
+        
+        // ───────────────────────────────────────────────────────
+        // Stage 8: Deploy to Target Environment
+        // ───────────────────────────────────────────────────────
+        stage('Deploy to Environment') {
+            when {
+                expression { params.ENVIRONMENT == 'dev' }
+            }
+            steps {
+                script {
+                    echo '═══════════════════════════════════════════════════════'
+                    echo "🚀 Deploying to ${params.ENVIRONMENT} environment"
+                    echo "Target: ${DEPLOY_USER}@${APP_SERVER_HOST} (${APP_SERVER_IP})"
+                    echo '═══════════════════════════════════════════════════════'
+                    
+                    // Use app-server-deploy-key for deployment
+                    sshagent(['app-server-deploy-key']) {
+                        sh """
+                            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            echo "Step 1/6: Stopping Tomcat service..."
+                            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${APP_SERVER_HOST} \
+                                'sudo systemctl stop tomcat9'
+                            echo "✅ Tomcat stopped"
+                            
+                            echo ""
+                            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            echo "Step 2/6: Copying WAR file to app server..."
+                            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            scp -o StrictHostKeyChecking=no \
+                                app/target/vprofile-v2.war \
+                                ${DEPLOY_USER}@${APP_SERVER_HOST}:/tmp/
+                            echo "✅ WAR file copied"
+                            
+                            echo ""
+                            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            echo "Step 3/6: Cleaning old deployment..."
+                            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${APP_SERVER_HOST} \
+                                'sudo rm -rf /opt/tomcat9/webapps/ROOT*'
+                            echo "✅ Old deployment removed"
+                            
+                            echo ""
+                            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            echo "Step 4/6: Deploying new WAR file..."
+                            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${APP_SERVER_HOST} '
+                                sudo mv /tmp/vprofile-v2.war /opt/tomcat9/webapps/ROOT.war
+                                sudo chown tomcat:tomcat /opt/tomcat9/webapps/ROOT.war
+                            '
+                            echo "✅ WAR deployed"
+                            
+                            echo ""
+                            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            echo "Step 5/6: Starting Tomcat service..."
+                            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${APP_SERVER_HOST} \
+                                'sudo systemctl start tomcat9'
+                            echo "✅ Tomcat started"
+                            
+                            echo ""
+                            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            echo "Step 6/6: Waiting for deployment (30 seconds)..."
+                            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                            sleep 30
+                            
+                            echo ""
+                            echo "Verifying deployment..."
+                            ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${APP_SERVER_HOST} \
+                                'sudo ls -la /opt/tomcat9/webapps/ | grep ROOT'
+                            
+                            echo ""
+                            echo "✅ Deployment completed successfully!"
+                        """
+                    }
+                }
+            }
+        }
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // Post-Build Actions
+    // ═══════════════════════════════════════════════════════════
+    post {
+        success {
+            script {
+                echo ''
+                echo '═══════════════════════════════════════════════════════'
+                echo '✅ Pipeline Completed Successfully!'
+                echo '═══════════════════════════════════════════════════════'
+                echo "Project         : ${PROJECT_NAME}"
+                echo "Environment     : ${params.ENVIRONMENT}"
+                echo "Build Number    : #${BUILD_NUMBER}"
+                echo "Build Time      : ${BUILD_TIME}"
+                if (params.ENVIRONMENT == 'dev') {
+                    echo "Application URL : http://${APP_SERVER_IP}:8080"
+                }
+                echo '═══════════════════════════════════════════════════════'
+                echo ''
+            }
+        }
+        failure {
+            script {
+                echo ''
+                echo '═══════════════════════════════════════════════════════'
+                echo '❌ Pipeline Failed!'
+                echo '═══════════════════════════════════════════════════════'
+                echo "Environment     : ${params.ENVIRONMENT}"
+                echo "Build Number    : #${BUILD_NUMBER}"
+                echo "Failed Stage    : Check console output above"
+                echo '═══════════════════════════════════════════════════════'
+                echo ''
+            }
+        }
+        always {
+            echo '🧹 Cleaning workspace...'
+            cleanWs()
+        }
+    }
+}
+
+🎯 Pipeline Best Practices Implemented
+Clear Structure
+✅ Logical stage separation
+✅ Descriptive stage names
+✅ Comments for maintainability
+Security
+✅ Credentials masked in logs
+✅ SSH agent for secure deployment
+✅ No hardcoded passwords
+Error Handling
+✅ Config file validation
+✅ Post-build actions (success/failure)
+✅ Detailed error messages
+Observability
+✅ Rich console output
+✅ Build metadata
+✅ Deployment verification
+Maintainability
+✅ Environment variables
+✅ Parameterized builds
+✅ Workspace cleanup
+
+🔧 Creating Jenkins Pipeline Job
+text
+1. Go to: Jenkins Dashboard
+2. Click: New Item
+3. Enter name: vprofile-cicd-pipeline
+4. Select: Pipeline
+5. Click: OK
+6. Configure:
+   
+   General Tab:
+   - Description: "VProfile Java application CI/CD pipeline"
+   - Check: "This project is parameterized"
+     - Add Parameter: Choice Parameter
+       - Name: ENVIRONMENT
+       - Choices: dev, staging, production
+       - Description: "Select deployment environment"
+   
+   Pipeline Tab:
+   - Definition: Pipeline script from SCM
+   - SCM: Git
+   - Repository URL: git@github.com:ganeshprasad-n/ng-java-app.git
+   - Credentials: github-ssh-key
+   - Branch Specifier: */jenkins
+   - Script Path: Jenkinsfile
+   
+7. Click: Save
+
+✅ Checkpoint: Pipeline Created
+Verification:
+text
+1. Go to: Jenkins Dashboard
+2. You should see: vprofile-cicd-pipeline
+3. Click: Build with Parameters
+4. Select: ENVIRONMENT = dev
+5. Click: Build
+6. Expected: Blue ocean or green success
 
 
-### ✅ Checkpoint 4: Verify Build Success
+5. Issues & Resolutions
+🐛 Issue Log & Solutions
+Issue 1: Credentials Visible in Console Output
+Problem:
+text
+Stage: Inject Configuration
+📋 Injecting dev configuration...
+jdbc.password=vprofile@54321  ← EXPOSED!
+rabbitmq.password=vprofile@rabbit123  ← EXPOSED!
 
-- ✅ `mvn clean compile` - no errors
-- ✅ `mvn package` - BUILD SUCCESS
-- ✅ WAR file created: `target/vprofile-v2.war`
-- ✅ File size reasonable (30-60MB typical)
+Root Cause:
+Used cat to display config file contents
+Jenkins console logs everything
+Solution:
+groovy
+// ❌ Bad - exposes secrets
+sh 'cat config/environments/dev/application.properties'
 
-### 📖 What's Happening During Build
+// ✅ Good - masks secrets
+sh """
+    echo "✅ Configuration injected successfully"
+    echo "Config file contains \$(grep -c '=' app/src/main/resources/application.properties) properties"
+    echo "Database configured: \$(grep -q 'jdbc.url' app/src/main/resources/application.properties && echo 'Yes' || echo 'No')"
+"""
 
-| Phase | What Happens |
-|-------|--------------|
-| **Clean** | Deletes `target/` directory |
-| **Validate** | Checks project structure and `pom.xml` |
-| **Compile** | Java files → bytecode (.class files) |
-| **Test** | Runs unit tests (JUnit/TestNG) |
-| **Package** | Creates WAR (Web Application Archive) |
-| **Install** | Copies to local Maven repository (~/.m2/) |
+Lesson Learned:
+Never echo/cat files with secrets
+Count properties instead of displaying content
+Use secret management tools (Vault) in production
 
-### ⚠️ Common Build Issues
+Issue 2: Property Placeholder Resolution Failed
+Problem:
+text
+ERROR: Could not resolve placeholder 'rabbitmq.address' in string value "${rabbitmq.address}"
 
-If Java version mismatch
-mvn -version # Check Maven's Java version
-java -version # Check system Java version
+Root Cause:
+Missing property in application.properties
+VProfile app expects rabbitmq.address but config had different property names
+Solution:
+text
+# ❌ Original config (missing)
+rabbitmq.host=10.115.108.191
+rabbitmq.port=5672
 
-Both should show Java 11
-If network issues (dependency download fails)
-mvn clean package -o # Use offline mode if dependencies cached
+# ✅ Fixed config (added missing property)
+rabbitmq.address=10.115.108.191
+rabbitmq.host=10.115.108.191
+rabbitmq.port=5672
 
-If memory issues
-export MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=512m"
-mvn clean install
+How We Debugged:
+Checked Tomcat logs: sudo grep -i "error" /opt/tomcat9/logs/catalina.out
+Identified missing property in error message
+Compared app expectations vs config file
+Added missing properties
+Lesson Learned:
+Always check application's expected properties
+Use IDE or grep to find all @Value("${...}") annotations in code
+Document required properties in README
 
-If dependency errors
-mvn dependency:resolve
-mvn dependency:tree # View dependency tree
+Issue 3: Case-Sensitive Property Names
+Problem:
+text
+ERROR: Could not resolve placeholder 'memcached.standBy.host'
 
-If tests fail (but want to continue)
-mvn clean install -DskipTests
+Root Cause:
+Config file had memcached.standby.host (lowercase 'b')
+Application expects memcached.standBy.host (capital 'B')
+Java camelCase vs properties naming mismatch
+Solution:
+text
+# ❌ Wrong - lowercase 'b'
+memcached.standby.host=10.115.108.191
+memcached.standby.port=11211
 
+# ✅ Correct - capital 'B'
+memcached.standBy.host=10.115.108.191
+memcached.standBy.port=11211
 
----
+How We Debugged:
+Read error message carefully: memcached.standBy.host
+Compared with config file: memcached.standby.host
+Noticed casing difference
+Fixed property names
+Lesson Learned:
+Property names are case-sensitive in Spring
+Always match exact casing from @Value annotations
+Use consistent naming conventions
 
-## 🚀 Stage 5: Deploy to Tomcat
+Issue 4: RabbitMQ Authentication Failure
+Problem:
+text
+ERROR: ACCESS_REFUSED - Login was refused using authentication mechanism PLAIN
 
-**[⬆️ Back to Top](#-table-of-contents)**
+Root Cause:
+RabbitMQ's guest user can only connect from localhost
+Application connecting from remote IP (10.115.108.191)
+Security feature in RabbitMQ
+Solution:
+bash
+# Create dedicated user for application
+sudo rabbitmqctl add_user vprofile_mq vprofile@rabbit123
+sudo rabbitmqctl set_permissions -p / vprofile_mq ".*" ".*" ".*"
+sudo rabbitmqctl set_user_tags vprofile_mq administrator
 
-### What We're Doing
+# Update config to use new credentials
+rabbitmq.username=vprofile_mq
+rabbitmq.password=vprofile@rabbit123
 
-Taking the WAR file and deploying it to the Tomcat servlet container.
+How We Debugged:
+Checked Tomcat logs for RabbitMQ errors
+Googled "ACCESS_REFUSED PLAIN RabbitMQ"
+Found RabbitMQ security documentation
+Created dedicated user
+Lesson Learned:
+Never use default guest user for remote connections
+Create application-specific users with appropriate permissions
+Follow principle of least privilege
 
-### Prerequisites: One-Time Setup
+Issue 5: Application Not Accessible (Firewall)
+Problem:
+text
+Browser: ERR_CONNECTION_TIMED_OUT
+Logs: Server startup in [9318] milliseconds ← App running!
 
-#### Add Your User to Tomcat Group
+Root Cause:
+Firewall blocking port 8080
+Application running fine, but external access blocked
+Solution:
+bash
+# Open firewall port
+sudo firewall-cmd --zone=public --add-port=8080/tcp --permanent
+sudo firewall-cmd --reload
 
-Add user to tomcat group
-sudo usermod -aG tomcat $USER
+# Verify
+sudo firewall-cmd --list-ports
+# Output: 8080/tcp
 
-Verify
-groups $USER
+How We Debugged:
+Checked if Tomcat was running: sudo systemctl status tomcat9
+Tested localhost: curl localhost:8080 (worked!)
+Realized firewall was blocking external access
+Opened port 8080
+Lesson Learned:
+Test local connectivity first
+Always check firewall rules after service installation
+Document required firewall ports
 
-Should show: ngp tomcat
-Log out and back in for changes to take effect
-exit
+Issue 6: SSH Agent Plugin Not Loaded
+Problem:
+text
+ERROR: No such DSL method 'sshagent' found
 
-SSH back in
-Verify again
-groups
+Root Cause:
+SSH Agent plugin installed but Jenkins not restarted
+Plugin not loaded into Jenkins runtime
+Solution:
+bash
+# Restart Jenkins
+sudo systemctl restart jenkins
 
-Should show tomcat in the list
+# Wait for Jenkins to fully start
+sleep 60
 
-#### Set Directory Permissions
+# Verify plugin loaded
+curl -s http://localhost:8080/pluginManager/api/json?depth=1 | grep ssh-agent
 
-sudo chmod 775 /opt/tomcat9/webapps
+How We Debugged:
+Checked installed plugins in Jenkins UI
+Plugin was listed but pipeline failed
+Realized Jenkins needs restart to load new plugins
+Restarted and verified
+Lesson Learned:
+Always restart Jenkins after installing plugins
+Use "Install and restart" option when available
+Verify plugin is active before using
 
-Verify
-ls -ld /opt/tomcat9/webapps
+📋 Common Issues Checklist
+Before Each Build:
+ Jenkins service running
+ All required plugins installed and loaded
+ Credentials configured in Jenkins
+ SSH keys working (test manually)
+ Config repository up to date
+ Target server accessible
+Build Failures:
+Symptom
+Likely Cause
+Check
+"Credentials not found"
+Wrong credential ID
+Verify ID matches Jenkinsfile
+"Permission denied (SSH)"
+SSH key issue
+Test: ssh deploy@app-server
+"mvn: command not found"
+Maven not in PATH
+Verify Global Tool Configuration
+"Could not resolve placeholder"
+Missing property
+Check application.properties
+"Deployment failed"
+Sudo permission issue
+Check /etc/sudoers.d/deploy
 
-Should show: drwxrwxr-x ... tomcat tomcat ... /opt/tomcat9/webapps
-
-### Manual Deployment Steps
-
-Step 1: Stop Tomcat
-sudo systemctl stop tomcat9
-sleep 2
-
-Step 2: Clean old deployment
-sudo rm -rf /opt/tomcat9/webapps/ROOT
-sudo rm -f /opt/tomcat9/webapps/ROOT.war
-
-Step 3: Deploy WAR
-sudo cp ~/vprofile-project/ng-java-app/target/vprofile-v2.war /opt/tomcat9/webapps/ROOT.war
-sudo chown tomcat:tomcat /opt/tomcat9/webapps/ROOT.war
-
-Step 4: Start Tomcat
-sudo systemctl start tomcat9
-
-Step 5: Wait for deployment (30 seconds)
-sleep 30
-
-Step 6: Verify deployment
-ls -la /opt/tomcat9/webapps/ | grep ROOT
-
-Should show both ROOT.war and ROOT/ directory
-
-### Automated Deployment Script
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-**Script:** `deployment-fedora.sh`
-
-Navigate to scripts directory
-cd ~/scripts
-
-Create deployment script
-nano deployment-fedora.sh
-
-Copy the content from deployment-fedora.sh file in the repo
-Make executable
-chmod +x deployment-fedora.sh
-
-Run deployment
-./deployment-fedora.sh
-
-
-### Monitoring & Logs
-
-Monitor deployment in real-time
-sudo tail -f /opt/tomcat9/logs/catalina.out
-
-View last 200 lines
-sudo tail -200 /opt/tomcat9/logs/catalina.out
-
-Search for errors
-sudo grep -i "error|exception|failed" /opt/tomcat9/logs/catalina.out | tail -30
-
-If required, restart Tomcat
-sudo systemctl restart tomcat9
-
-
-### ✅ Checkpoint 5: Verify Deployment
-
-Check Tomcat service
+Deployment Failures:
+Symptom
+Likely Cause
+Solution
+Tomcat won't stop
+Already stopped or hung
 sudo systemctl status tomcat9
-
-Should show: Active: active (running)
-Check WAR file
-ls -lh /opt/tomcat9/webapps/ROOT.war
-
-Should show: -rw-r--r-- 1 tomcat tomcat 50M ...
-Check deployment extraction
-ls -la /opt/tomcat9/webapps/ROOT/
-
-Should show WEB-INF/, META-INF/, etc.
-Check logs for success message
-sudo grep "Server startup" /opt/tomcat9/logs/catalina.out | tail -1
-
-Should show: Server startup in [XXXX] milliseconds
+Permission denied (deploy)
+Wrong ownership
+sudo chown tomcat:tomcat ROOT.war
+App not starting
+Config error
+Check /opt/tomcat9/logs/catalina.out
+404 Not Found
+Wrong deployment path
+Verify ROOT.war (not vprofile.war)
 
 
-- ✅ Tomcat service running
-- ✅ WAR file in webapps directory
-- ✅ Catalina logs show no severe errors
-- ✅ Deployment completion message in logs
+6. Production Best Practices
+✅ Practices Implemented
+1. Separation of Concerns
+Code Repository: Application source code only
+Config Repository: Environment configurations only
+Benefit: Different teams can manage code vs config
+2. Parameterized Builds
+Implementation: ENVIRONMENT parameter (dev/staging/prod)
+Benefit: One pipeline for all environments
+3. Security by Design
+SSH Keys: Separate keys for GitHub and app server
+Credentials: Stored in Jenkins, not in code
+Secrets Masking: No passwords in console logs
+4. Immutable Builds
+Pattern: Build once, deploy anywhere
+Implementation: Environment config injected at build time
+Benefit: Same WAR file structure for all environments
+5. Automated Deployment
+Method: SSH + systemctl commands
+Rollback: Stop → Clean → Deploy → Start
+Verification: Wait 30s, check logs
+6. Clean Workspace
+Implementation: cleanWs() in post block
+Benefit: No workspace clutter, consistent builds
+7. Build Artifacts
+Archiving: WAR files stored in Jenkins
+Fingerprinting: Track artifact versions
+Benefit: Quick rollback to previous versions
 
-### 📖 Why Deploy as ROOT.war?
-
-| Aspect | Explanation |
-|--------|-------------|
-| **Root Context** | App accessible at `http://localhost:8080/` (no context path) |
-| **No App Name in URL** | Users don't need to remember `/vprofile-v2/` |
-| **Main Application** | Standard for primary application on a server |
-| **Industry Practice** | Microservices: one app per container as ROOT |
-
-### 🏢 Industry Deployment Strategies
-
-| Strategy | Use Case | URL Pattern |
-|----------|----------|-------------|
-| **ROOT deployment** | Modern microservices, one app per Tomcat | `http://host:8080/` |
-| **Context path deployment** | Multiple apps on one Tomcat (legacy) | `http://host:8080/app1/`, `http://host:8080/app2/` |
-| **Manager deployment** | Web-based upload via Tomcat Manager | `http://host:8080/manager/` |
-
-### ⚠️ Deployment Issues & Fixes
-
-If Tomcat won't start
-sudo journalctl -u tomcat9 -f
-
-If permission errors
-sudo chown -R tomcat:tomcat /opt/tomcat9/webapps/
-
-If port 8080 in use
-sudo netstat -tulpn | grep 8080
-
-Change port in /opt/tomcat9/conf/server.xml if needed
-If WAR not deploying
-sudo tail -f /opt/tomcat9/logs/catalina.out
-
-Look for deployment messages
+📊 Comparison: Before vs After
+Aspect
+Manual Deployment
+CI/CD Pipeline
+Build Time
+~5 minutes
+~2 minutes
+Deployment
+Manual SSH, copy files
+Automated
+Errors
+Frequent human errors
+Consistent process
+Rollback
+Manual, risky
+Automated, use previous build
+Documentation
+Often missing
+Pipeline as code
+Testing
+Skipped or inconsistent
+Can add automated tests
+Config Management
+Copy-paste errors common
+Version controlled
 
 
-### Alternative: Deploy with Context Path
+7. Interview Talking Points
+🎯 Technical Accomplishments
+"I designed and implemented a production-grade CI/CD pipeline for a Java web application using Jenkins, Git, and Maven."
+Key Points:
+Separation of Concerns
+"I implemented a multi-repository architecture with separate code and configuration repositories"
+"This follows the 12-factor app methodology for config management"
+Automated Build & Deployment
+"Configured Jenkins pipeline with 8 stages: checkout, config injection, build, archive, and deploy"
+"Reduced deployment time from 5 minutes (manual) to 2 minutes (automated)"
+Security
+"Implemented SSH key-based authentication with separate keys for GitHub and application server"
+"Configured sudo permissions following principle of least privilege"
+"Ensured secrets are not exposed in build logs or version control"
+Infrastructure as Code
+"Pipeline defined in Jenkinsfile, versioned in Git"
+"Created automated setup scripts for Jenkins installation"
+Problem-Solving
+"Debugged and resolved RabbitMQ authentication issues"
+"Handled property placeholder resolution errors"
+"Implemented firewall configuration for application access"
 
-If you prefer accessing the app at `http://localhost:8080/vprofile-v2/`:
+📝 Behavioral Answers
+Q: "Tell me about a challenging technical problem you solved."
+A:
+"While implementing CI/CD for a Java application, I encountered a RabbitMQ authentication failure. The application couldn't connect because RabbitMQ's default 'guest' user only allows localhost connections. I analyzed the Tomcat logs, researched RabbitMQ security, and created a dedicated application user with appropriate permissions. This taught me the importance of understanding default security configurations and never using default credentials in production."
 
-sudo systemctl stop tomcat9
-sudo rm -rf /opt/tomcat9/webapps/ROOT* /opt/tomcat9/webapps/vprofile*
-sudo cp ~/vprofile-project/ng-java-app/target/vprofile-v2.war /opt/tomcat9/webapps/
-sudo chown tomcat:tomcat /opt/tomcat9/webapps/vprofile-v2.war
-sudo systemctl start tomcat9
+Q: "How do you handle secrets in CI/CD?"
+A:
+"I implemented a three-layer approach: First, secrets are stored in Jenkins Credentials, not in Git. Second, I separated configuration from code using a dedicated config repository. Third, I ensured secrets aren't exposed in console logs by validating config injection without displaying content. For future improvements, I planned to integrate HashiCorp Vault for dynamic secret generation."
 
-Access at:
-http://localhost:8080/vprofile-v2/
+Q: "Describe your CI/CD pipeline architecture."
+A:
+"My pipeline has 8 stages: First, it checks out application code and configuration from separate Git repositories. Second, it injects environment-specific configuration. Third, Maven builds and packages the WAR file. Fourth, the artifact is archived in Jenkins. Finally, using SSH, it deploys to the target server by stopping Tomcat, replacing the WAR, and restarting the service. The entire process is automated and takes about 2 minutes."
+
+🎓 Key Learnings
+Infrastructure as Code
+Pipelines defined in Git
+Reproducible builds
+Version-controlled configuration
+Security First
+SSH keys over passwords
+Separate credentials for each service
+Principle of least privilege
+Debugging Skills
+Read error messages carefully
+Check application logs first
+Test locally before blaming the pipeline
+Documentation
+Document as you build
+Capture issues and solutions
+Create runbooks for common tasks
+
+📚 Final Architecture Diagram
 text
-
----
-
-## 🌐 Stage 6: Testing & Verification
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-### What We're Doing
-
-Verifying the application is working end-to-end with all services connected.
-
-### Quick Tests from Terminal
-
-Test Tomcat response
-curl -I http://localhost:8080/
-
-Should return: HTTP/1.1 200 or HTTP/1.1 302 (redirect to /login)
-Test application homepage
-curl http://localhost:8080/ | head -20
-
-Should return HTML content, not 404 error
-Monitor logs for errors
-sudo tail -f /opt/tomcat9/logs/catalina.out | grep -i "error|warn|exception"
-
-
-
-### Manual Browser Testing
-
-**From your host machine browser:**
-
-http://VM-IP:8080/
-
-
-**Example:**
-http://10.115.108.134:8080/
-
-
-
-**Test these features:**
-
-- ✅ Homepage loads
-- ✅ Can navigate to `/login`
-- ✅ Can navigate to `/registration`
-- ✅ Form inputs work
-- ✅ No JavaScript errors in browser console (F12)
-
-### Comprehensive Service Check
-
-Create service check script
-cat > ~/scripts/check-services.sh << 'EOF'
-#!/bin/bash
-echo "=== VProfile Service Check ==="
-echo ""
-
-echo "MySQL: $(nc -z localhost 3306 && echo 'OK ✅' || echo 'FAIL ❌')"
-echo "RabbitMQ: $(nc -z localhost 5672 && echo 'OK ✅' || echo 'FAIL ❌')"
-echo "Memcached: $(nc -z localhost 11211 && echo 'OK ✅' || echo 'FAIL ❌')"
-echo "ElasticSearch: $(curl -s http://localhost:9200 > /dev/null && echo 'OK ✅' || echo 'FAIL ❌')"
-echo "Tomcat: $(curl -s http://localhost:8080 > /dev/null && echo 'OK ✅' || echo 'FAIL ❌')"
-EOF
-
-chmod +x ~/scripts/check-services.sh
-~/scripts/check-services.sh
-
-
-**Expected Output:**
-=== VProfile Service Check ===
-
-MySQL: OK ✅
-RabbitMQ: OK ✅
-Memcached: OK ✅
-ElasticSearch: OK ✅
-Tomcat: OK ✅
-
-
-### ✅ Checkpoint 6: Full Application Verification
-
-- ✅ Tomcat responds on port 8080
-- ✅ Application homepage loads
-- ✅ No errors in browser console
-- ✅ Database operations work (register/login)
-- ✅ All services connected
-- ✅ **Application is LIVE!** 🎉
-
-### 📖 What to Test
-
-| Feature | How to Test | Expected Result |
-|---------|-------------|-----------------|
-| **Homepage** | Visit `http://VM-IP:8080/` | Shows login/registration page |
-| **User Registration** | Fill registration form | New user created in database |
-| **User Login** | Login with credentials | Session created, redirect to dashboard |
-| **Database Query** | Login (triggers SELECT query) | User data loaded from MySQL |
-| **Session Caching** | Login, refresh page | Session persists (Memcached working) |
-| **Search** | Use search feature | ElasticSearch returns results |
-
----
-
-## 🔧 Stage 7: Troubleshooting
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-### Database Connection Issues
-
-Test MySQL connection
-mysql -u root -pAdmin@54321 -e "SELECT 1;"
-
-Check application properties
-cat ~/vprofile-project/ng-java-app/src/main/resources/application.properties | grep jdbc
-
-Verify MySQL is listening
-sudo netstat -tulpn | grep 3306
-
-Check MySQL service status
-sudo systemctl status mysql
-
-
-### Service Connection Problems
-
-Check all services status
-sudo systemctl status mysql rabbitmq-server memcached elasticsearch tomcat9
-
-Test individual service connectivity
-echo "stats" | nc localhost 11211 # Memcached
-nc -z localhost 5672 && echo "RabbitMQ OK" # RabbitMQ
-mysql -u root -p'Admin@54321' -e "SELECT 1;" # MySQL
-curl http://localhost:9200 # ElasticSearch
-
-
-### Application Debugging & Logs
-
-Live log monitoring
-sudo tail -f /opt/tomcat9/logs/catalina.out
-
-Check for specific errors
-sudo grep -i "error|exception|failed" /opt/tomcat9/logs/catalina.out | tail -10
-
-Verify WAR extraction
-ls -la /opt/tomcat9/webapps/ROOT/
-
-Check disk space
-df -h
-
-Check memory usage
-free -h
-
-Check Java process
-ps aux | grep tomcat
-
-text
-
-### Common Error Patterns
-
-| Error Message | Cause | Solution |
-|--------------|-------|----------|
-| `Connection refused (localhost:3306)` | MySQL not running | `sudo systemctl start mysqld` |
-| `Access denied for user 'vprofile_app'` | Wrong credentials | Check application.properties |
-| `java.lang.OutOfMemoryError` | Insufficient heap memory | Increase `-Xmx` in Tomcat config |
-| `Address already in use (port 8080)` | Port conflict | Change port or kill process using it |
-| `ClassNotFoundException` | Missing dependency | Rebuild with `mvn clean install` |
-
-### Debugging: 404 Error (Default Tomcat Page)
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-**Symptom:** Tomcat default page shown instead of your app.
-
-**Root cause:** Default ROOT app still serving; your app either not deployed to ROOT or not extracted correctly.
-
-**Systematic debugging steps:**
-
-Step 1: Check webapps directory
-sudo ls -la /opt/tomcat9/webapps/
-
-Should show: ROOT.war and ROOT/ directory
-Step 2: Monitor deployment logs
-sudo tail -f /opt/tomcat9/logs/catalina.out
-
-Look for: "Deployment of web application archive [.../ROOT.war] has finished"
-Step 3: Check if ROOT directory has content
-ls -la /opt/tomcat9/webapps/ROOT/
-
-Should show: WEB-INF/, META-INF/, index.jsp, etc.
-Step 4: Check application-specific logs
-sudo tail -f /opt/tomcat9/logs/localhost.*.log
-
-Step 5: Verify WAR integrity
-jar -tf ~/vprofile-project/ng-java-app/target/vprofile-v2.war | head
-
-
-**Fixes:**
-
-Option 1: Force redeploy
-sudo systemctl stop tomcat9
-sudo rm -rf /opt/tomcat9/webapps/ROOT*
-sudo cp ~/vprofile-project/ng-java-app/target/vprofile-v2.war /opt/tomcat9/webapps/ROOT.war
-sudo chown tomcat:tomcat /opt/tomcat9/webapps/ROOT.war
-sudo systemctl start tomcat9
-
-Option 2: Deploy with context path (alternative)
-sudo systemctl stop tomcat9
-sudo rm -rf /opt/tomcat9/webapps/ROOT* /opt/tomcat9/webapps/vprofile*
-sudo cp ~/vprofile-project/ng-java-app/target/vprofile-v2.war /opt/tomcat9/webapps/vprofile-v2.war
-sudo chown tomcat:tomcat /opt/tomcat9/webapps/vprofile-v2.war
-sudo systemctl start tomcat9
-
-Access at: http://VM-IP:8080/vprofile-v2/
-
-
-**Pro tip:** Always check logs first — 90% of issues are visible there.
-
----
-
-## 📋 Final Verification Script
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-Save as `verify-vprofile.sh` and run:
-
-#!/bin/bash
-echo "=== VProfile Complete Verification ==="
-echo ""
-
-1. Service Status
-echo "1. Service Status:"
-echo " MySQL: $(sudo systemctl is-active mysqld)"
-echo " RabbitMQ: $(sudo systemctl is-active rabbitmq-server)"
-echo " Memcached: $(sudo systemctl is-active memcached)"
-echo " ElasticSearch: $(sudo systemctl is-active elasticsearch)"
-echo " Tomcat: $(sudo systemctl is-active tomcat9)"
-echo ""
-
-2. Port Listening
-echo "2. Port Accessibility:"
-for port in 3306 5672 11211 9200 8080; do
-nc -z localhost $port 2>/dev/null && echo " Port $port: OPEN ✅" || echo " Port $port: CLOSED ❌"
-done
-echo ""
-
-3. Application Health
-echo "3. Application Health:"
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/)
-echo " HTTP Status: $HTTP_STATUS"
-if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "302" ]; then
-echo " Application: HEALTHY ✅"
-else
-echo " Application: UNHEALTHY ❌"
-fi
-echo ""
-
-4. Database Connectivity
-echo "4. Database Test:"
-DB_TEST=$(mysql -u root -p'Admin@54321' -e "SELECT COUNT(*) FROM accounts.user;" 2>/dev/null | tail -1)
-if [ -n "$DB_TEST" ]; then
-echo " Users in DB: $DB_TEST ✅"
-else
-echo " Database connection: FAILED ❌"
-fi
-echo ""
-
-echo "=== Verification Complete ==="
-
-text
-
-**Usage:**
-
-chmod +x ~/scripts/verify-vprofile.sh
-~/scripts/verify-vprofile.sh
-
-
----
-
-## 🎓 What You've Learned
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-### Core Concepts Mastered
-
-| Concept | What You Learned |
-|---------|-----------------|
-| **Git & Version Control** | Clone and explore Java projects |
-| **MySQL Database** | Setup, user management, schema import |
-| **Application Configuration** | Connect Java to backend services |
-| **Maven Build Tool** | Compile, test, package Java applications |
-| **Java Web Applications** | WAR file structure and deployment |
-| **Tomcat Server** | Deploy and manage web applications |
-| **Multi-tier Architecture** | Frontend, backend, database, cache, queue integration |
-| **DevOps Workflow** | Build, test, deploy automation |
-| **Linux System Admin** | User management, permissions, service management |
-| **Troubleshooting** | Systematic debugging approach |
-
-### 📚 Industry Skills
-
-You now understand:
-
-- ✅ How to setup a complete development environment
-- ✅ How Java applications are structured (Maven standard layout)
-- ✅ How to build and package applications
-- ✅ How to deploy to production servers
-- ✅ How to manage databases and services
-- ✅ How to troubleshoot deployment issues
-- ✅ Real-world DevOps practices
-
-### 🚀 Real-World Applications
-
-This workflow is used by:
-
-- ✅ DevOps Engineers
-- ✅ Backend Developers
-- ✅ Site Reliability Engineers (SRE)
-- ✅ System Administrators
-- ✅ Platform Engineers
-
-### 📝 Next Steps
-
-1. **Automate Everything**: Create scripts for repeated tasks
-2. **Add CI/CD**: Use Jenkins/GitLab for automatic builds
-3. **Container Deployment**: Move to Docker/Kubernetes
-4. **Cloud Deployment**: Deploy to AWS/Azure/GCP
-5. **Advanced Monitoring**: Add Prometheus/Grafana
-
----
-
-## 🏢 Real-World Deployment Strategies
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-### Single vs Multiple WAR Deployments
-
-#### Single WAR (ROOT.war)
-
-**URL:** `http://localhost:8080/`
-
-**Use case:** One application per Tomcat server (modern cloud approach)
-
-**Pros:**
-- ✅ Isolation - failures don't affect other apps
-- ✅ Easier scaling per service
-- ✅ Simpler troubleshooting
-- ✅ Recommended modern approach
-
-**Cons:**
-- ❌ Higher resource usage per app
-- ❌ More servers to manage
-
-#### Multiple WARs (context paths)
-
-**URLs:**
-- `http://localhost:8080/vprofile/` → vprofile.war
-- `http://localhost:8080/api/` → api.war
-- `http://localhost:8080/admin/` → admin.war
-
-**Use case:** Legacy/monolithic deployments or when multiple apps need to share a JVM
-
-**Pros:**
-- ✅ Cost-saving - one server for multiple apps
-- ✅ Shared resources (connection pools, etc.)
-- ✅ Lower infrastructure cost
-
-**Cons:**
-- ❌ Single point of failure
-- ❌ Resource contention
-- ❌ Complex troubleshooting
-
-### Modern vs Legacy Comparison
-
-| Aspect | Single WAR (Modern) | Multiple WARs (Legacy) |
-|--------|---------------------|------------------------|
-| **Architecture** | Microservices | Monolithic |
-| **Scaling** | Per service | All or nothing |
-| **Deployment** | Independent | Coordinated |
-| **Resource Isolation** | ✅ High | ❌ Low |
-| **Cost** | Higher (more instances) | Lower (shared instance) |
-| **Complexity** | Simple per service | Complex overall |
-| **Failure Impact** | Isolated | Cascading |
-| **Recommended For** | Cloud, Containers | On-premise, Legacy |
-
-### Real-World Strategies
-
-#### Modern Approach (Recommended)
-
-┌─────────────────────────────────────────┐
-│ Load Balancer (Nginx / ALB / CloudFlare)│
-└────────────┬────────────────────────────┘
-│
-┌──────┴──────┐
-│ │
-┌─────▼────┐ ┌─────▼────┐
-│ Container│ │ Container│
-│ (Tomcat) │ │ (Tomcat) │
-│ ROOT.war │ │ ROOT.war │
-└──────────┘ └──────────┘
-
-
-**Characteristics:**
-- One WAR per container/VM
-- Deployed as ROOT
-- Reverse proxy handles routing
-- Horizontal scaling
-
-#### Legacy Approach
-
-┌──────────────────────────────┐
-│ Single Tomcat Server │
-├──────────────────────────────┤
-│ vprofile.war → /vprofile/ │
-│ api.war → /api/ │
-│ admin.war → /admin/ │
-└──────────────────────────────┘
-
-
-**Characteristics:**
-- Multiple WARs on single Tomcat
-- Context path routing
-- Shared resources
-- Vertical scaling
-
-### Recommendation for vProfile
-
-**Use single ROOT.war deployment** - aligns with modern standards and cloud-native practices.
-
----
-
-## 📝 Final Notes & Next Steps
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
-### 📁 Provided Scripts
-
-Use these scripts for repeatable operations:
-
-| Script | Purpose | Location |
-|--------|---------|----------|
-| `setup-fedora.sh` | Environment setup | [Google Drive](https://drive.google.com/drive/folders/1pI2YbeFA3GhPIRtTORFiMvzwx9XtgdNj?usp=drive_link) |
-| `deployment-fedora.sh` | Application deployment | [Google Drive](https://drive.google.com/drive/folders/1pI2YbeFA3GhPIRtTORFiMvzwx9XtgdNj?usp=drive_link) |
-| `verify-vprofile.sh` | Health check | [Above](#-final-verification-script) |
-| `check-services.sh` | Service status | [Above](#comprehensive-service-check) |
-
-### 🔒 Production Security Checklist
-
-**⚠️ Before production deployment:**
-
-- ❌ Do NOT store passwords in `application.properties`
-- ✅ Use environment variables or secrets manager
-- ✅ Enable HTTPS/TLS
-- ✅ Change default passwords (MySQL root, RabbitMQ guest)
-- ✅ Enable firewall rules
-- ✅ Regular backups
-- ✅ Monitoring and alerting
-- ✅ Log aggregation
-
-### Example: Externalize Credentials
-
-Production approach - use environment variables
-export DB_USERNAME=vprofile_app
-export DB_PASSWORD=$(aws secretsmanager get-secret-value --secret-id prod/vprofile/db --query SecretString --output text)
-
-Or use Spring Boot profiles
-java -jar app.jar --spring.profiles.active=prod
-
-
-### 📚 Additional Resources
-
-- **Maven Documentation**: https://maven.apache.org/
-- **Tomcat Documentation**: https://tomcat.apache.org/
-- **MySQL Documentation**: https://dev.mysql.com/doc/
-- **Spring Boot**: https://spring.io/projects/spring-boot
-- **Java Documentation**: https://docs.oracle.com/en/java/
-
-### 🙋 Getting Help
-
-If you encounter issues:
-
-1. Check logs first: `sudo tail -f /opt/tomcat9/logs/catalina.out`
-2. Verify all services are running: `sudo systemctl status mysql rabbitmq-server memcached elasticsearch tomcat9`
-3. Run verification script: `~/scripts/verify-vprofile.sh`
-4. Search error messages online
-5. Check GitHub Issues in the repository
-
----
-
-## 📝 Document Change Log
-
-| Date | Version | Changes |
-|------|---------|---------|
-| 2025-11-09 | 1.0 | Initial release with comprehensive guide |
-
----
-
-**Happy Deploying! 🚀**
-
-**[⬆️ Back to Top](#-table-of-contents)**
-
----
+┌────────────────────────────────────────────────────────────────┐
+│                  Production-Grade CI/CD System                  │
+└────────────────────────────────────────────────────────────────┘
+
+Developer Workstation (10.115.108.112)
+  ├── Git repositories (local clones)
+  └── Development environment
+         │
+         │ git push
+         ▼
+GitHub (SaaS)
+  ├── ng-java-app (jenkins branch)
+  │   └── Jenkinsfile
+  └── ng-java-app-config (main branch)
+      └── environments/{dev,staging,production}
+         │
+         │ SCM polling / webhook
+         ▼
+Jenkins Server (10.115.108.160)
+  ├── Jenkins (port 8080)
+  ├── Maven 3.8.9
+  ├── JDK 11
+  └── SSH Keys (github, app-server)
+         │
+         │ git clone (SSH)
+         ▼
+Build Workspace
+  ├── app/ (from ng-java-app)
+  ├── config/ (from ng-java-app-config)
+  └── mvn clean install
+         │
+         │ Artifact: vprofile-v2.war
+         ▼
+Archive
+  └── Jenkins artifact storage
+         │
+         │ scp + ssh (deploy user)
+         ▼
+App Server (10.115.108.191)
+  ├── Tomcat 9 (application server)
+  ├── MySQL 8.0 (database)
+  ├── Memcached (caching)
+  ├── RabbitMQ (message queue)
+  └── Elasticsearch (search engine)
+         │
+         │ HTTP port 8080
+         ▼
+Users/Clients
+  └── http://10.115.108.191:8080
+
+
+✅ Project Completion Checklist
+Infrastructure:
+ Jenkins server installed and configured
+ Maven and JDK configured
+ SSH keys generated and configured
+ Firewall rules configured
+Repositories:
+ Application repository created (ng-java-app)
+ Configuration repository created (ng-java-app-config)
+ Jenkins branch created
+ Jenkinsfile committed
+Credentials:
+ GitHub SSH credential added to Jenkins
+ App server SSH credential added to Jenkins
+ Deploy user configured on app server
+Pipeline:
+ Pipeline job created in Jenkins
+ Parameterized build configured
+ All 8 stages implemented
+ Successful build and deployment
+Verification:
+ Application accessible at 
+http://10.115.108.191:8080
+ Configuration injection working
+ Secrets not exposed in logs
+ Deployment process automated
+Documentation:
+ Architecture documented
+ Issues and solutions documented
+ Best practices documented
+ Interview points prepared
+
+🎓 Conclusion
+This project demonstrates production-grade DevOps practices:
+✅ Automated CI/CD pipeline from code commit to deployment
+✅ Separation of concerns with multiple repositories
+✅ Security-first approach with SSH keys and credential management
+✅ Infrastructure as Code with versioned Jenkinsfile
+✅ Problem-solving skills documented with real issues and solutions
+Resume Impact: This project showcases enterprise-level DevOps skills that hiring managers look for!
+Next Steps:
+Integrate SonarQube for code quality
+Add HashiCorp Vault for secrets management
+Implement automated testing stages
+Set up monitoring and alerting
+
+End of Documentation
+Last Updated: 2025-11-11
+Project: VProfile CI/CD Pipeline
+Author: DevOps Engineer
