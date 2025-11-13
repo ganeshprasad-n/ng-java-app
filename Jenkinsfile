@@ -93,7 +93,7 @@ pipeline {
             steps {
                 echo '📥 Checking out application code from jenkins branch...'
                 checkout([$class: 'GitSCM',
-                    branches: [[name: '*/jenkins']],
+                    branches: [[name: '*/jenkins-local']],
                     extensions: [[$class: 'RelativeTargetDirectory',
                         relativeTargetDir: 'app']],
                     userRemoteConfigs: [[
