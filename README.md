@@ -419,14 +419,6 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📞 Support
-
-- **Documentation**: See full docs in `docs/` folder
-- **Issues**: [GitHub Issues](https://github.com/ganeshprasad-n/ng-java-app/issues)
-- **Email**: ganeshprasad.n@example.com
-
----
-
 ## 📜 License
 
 This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
@@ -449,8 +441,6 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 - **Test Coverage**: 75%
 
 ---
-
-**Made with ❤️ by [Ganeshprasad N](https://github.com/ganeshprasad-n)**
 
 **⭐ Star this repo if you find it helpful!**
 
