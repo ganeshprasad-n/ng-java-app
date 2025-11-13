@@ -30,7 +30,7 @@ pipeline {
         
         // Server Configuration
         APP_SERVER_HOST = 'app-server'  // SSH hostname from ~/.ssh/config
-        APP_SERVER_IP = '10.115.108.191'  // For display purposes only
+        APP_SERVER_IP = '10.153.226.176'  // For display purposes only
         DEPLOY_USER = 'deploy'
         
         // Build Metadata
